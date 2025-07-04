@@ -14,6 +14,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import ChatBoxUser from "../../chat/chatBoxUser";
+import { formatPrice } from "../../../utils/Funtion";
 
 import {
   IconButton,
@@ -45,7 +46,8 @@ import { getProvinces, getDistricts } from "../../../api/addressApi";
 import { getProperties } from "../../../api/propertiesApi";
 
 import { pink } from "@mui/material/colors";
-import { set } from "zod";
+import "../../../utils/Language/i18n";
+import { useTranslation } from "react-i18next";
 
 function DetailPost({ post }) {
   const [newdata, setNewData] = useState({
@@ -443,7 +445,10 @@ function DetailPost({ post }) {
             <div className="col">
               <h6>Mức giá</h6>
               <h6>
-                {newdata?.price?.value} {newdata?.price?.unit}
+                {formatPrice(
+                  newdata?.price?.value ? newdata?.price?.value : newdata?.price
+                )}{" "}
+                {newdata?.price?.unit}
               </h6>
             </div>
           </div>

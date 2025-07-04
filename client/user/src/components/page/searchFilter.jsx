@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import instance from "../../api/instanApi";
 import { getNearbyProvinces } from "../../api/addressApi";
 import provinceData from "../../dbNearProvince.json";
+import { getProperties } from "../../api/propertiesApi";
 
 function SearchFilter() {
   const savedData = JSON.parse(localStorage.getItem("searchItem"));
@@ -60,6 +61,13 @@ function SearchFilter() {
     }
   }
 
+  useEffect(() => {
+    getProperties().then((res) => {
+      setProperties(res.data.data);
+      console.log(res.data.data);
+    });
+  }, []);
+
   // Filtering logic based on the criteria
   const filteredPosts = posts?.filter((item) => {
     const matchesPrice =
@@ -92,6 +100,8 @@ function SearchFilter() {
     const Property = properties?.find(
       (property) => property._id === item.property_type_id
     )?.name;
+
+    console.log(Property, item.property_type_id, properties);
     const matchesProperty =
       !savedData.property || Property === savedData.property;
 

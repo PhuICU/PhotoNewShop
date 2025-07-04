@@ -13,14 +13,16 @@ import {
 import { notification, theme } from "antd";
 import { styled } from "@mui/material/styles";
 import { getCurrentActiveVip } from "../../api/vipApi";
-
+import Cookie from "js-cookie";
 import { getProfile } from "../../api/authApi";
+import "../../utils/Language/i18n";
+import { useTranslation } from "react-i18next";
 function Header() {
   const [activeLink, setActiveLink] = useState("");
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const Navigite = useNavigate();
-
+  const { t } = useTranslation();
   const setDarkMode = () => {
     document.querySelector("body").setAttribute("data-theme", "dark");
     localStorage.setItem("theme", "dark");
@@ -121,9 +123,9 @@ function Header() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user1");
+    Cookie.remove("accessToken");
+    Cookie.remove("refreshToken");
+    localStorage.removeItem("user");
     Navigite("/");
   };
 
@@ -210,7 +212,7 @@ function Header() {
                         handleLinkClick("/classfication?type=camera")
                       }
                     >
-                      MÁY ẢNH
+                      {t("MÁY ẢNH")}
                     </Link>
                   </li>
                   <li className="nav-item fw-bolder">
@@ -222,7 +224,7 @@ function Header() {
                         handleLinkClick("/classfication?type=camcorder")
                       }
                     >
-                      MÁY QUAY
+                      {t("MÁY QUAY")}
                     </Link>
                   </li>
                   <li className="nav-item fw-bolder">
@@ -235,7 +237,7 @@ function Header() {
                         handleLinkClick("/classfication?type=lens")
                       }
                     >
-                      ỐNG KÍNH
+                      {t("ỐNG KÍNH")}
                     </Link>
                   </li>
 
@@ -248,7 +250,7 @@ function Header() {
                         handleLinkClick("/classfication?type=accessory")
                       }
                     >
-                      PHỤ KIỆN
+                      {t("PHỤ KIỆN")}
                     </Link>
                   </li>
 
@@ -259,7 +261,7 @@ function Header() {
                       style={linkStyle("/chatbot")}
                       onClick={() => handleLinkClick("/chatbot")}
                     >
-                      HỖ TRỢ
+                      {t("HỖ TRỢ")}
                     </Link>
                   </li>
                 </ul>
@@ -288,8 +290,8 @@ function Header() {
                     </FormGroup>
                   </li>
 
-                  {localStorage.getItem("accessToken") &&
-                  localStorage.getItem("user1") ? (
+                  {Cookie.get("access_token") &&
+                  localStorage.getItem("user") ? (
                     <div className="collapse navbar-collapse" id="navbarNav">
                       <ul className="navbar-nav">
                         <li className="nav-item">
@@ -317,7 +319,7 @@ function Header() {
                             }}
                           >
                             <MenuItem onClick={handleLogout}>
-                              Đăng xuất
+                              {t("Đăng xuất")}
                             </MenuItem>
                           </Menu>
                         </li>
@@ -333,20 +335,20 @@ function Header() {
                       <ul className="navbar-nav"></ul>
                       <li className="nav-item">
                         <Link to={"/login"} className="nav-link">
-                          Đăng nhập
+                          {t("Đăng nhập")}
                         </Link>
                       </li>
                       <li className="nav-item">
                         <Link to={"/register"} className="nav-link">
-                          Đăng ký
+                          {t("Đăng ký")}
                         </Link>
                       </li>
                     </div>
                   )}
                   <li>
-                    {localStorage.getItem("user1") && dataVip === true ? (
+                    {localStorage.getItem("user") && dataVip === true ? (
                       <Link to={"/post/new"} className="nav-link">
-                        <Button variant="contained">đăng tin</Button>
+                        <Button variant="contained">{t("Đăng tin")}</Button>
                       </Link>
                     ) : (
                       <Link
@@ -355,7 +357,7 @@ function Header() {
                         onClick={warning}
                       >
                         <Button variant="contained" disabled>
-                          đăng tin
+                          {t("Đăng tin")}
                         </Button>
                       </Link>
                     )}

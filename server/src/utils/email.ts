@@ -3,6 +3,7 @@ import env_config from '~/configs/env.config'
 import { ACCOUNT_TYPE, ROLE_TYPE } from '~/enums/user.enum'
 import { PAYMENT_SCHEMA } from '~/models/schemas/Payment.schema'
 import { USER_SCHEMA } from '~/models/schemas/User.schema'
+import { REPORT_INTERACTION_SCHEMA } from '~/models/schemas/Report.schema'
 import { VIP_PACKAGE_SCHEMA } from '~/models/schemas/VipPackage.schema'
 import { formatCurrency, handlePriceDiscount } from './formatCurrency'
 import { DISCOUNT_TYPE } from '~/enums/util.enum'
@@ -15,11 +16,11 @@ export const sendEmailVerification = async (
   email: string,
   token: string,
   subject: string,
-  account_type: ACCOUNT_TYPE,
+
   role: ROLE_TYPE
 ) => {
   try {
-    const verificationLink = `${env_config.CLIENT_PORTS}/verify-email?token=${token}&account_type=${account_type}&role=${role}`
+    const verificationLink = `${env_config.CLIENT_PORTS}/verify-email?token=${token}&role=${role}`
     const htmlContent = `
          <p>Xin chào,</p>
 <p>Cảm ơn bạn đã đăng ký tài khoản! Vui lòng sử dụng liên kết xác minh sau để kích hoạt tài khoản của bạn:</p>
@@ -132,15 +133,11 @@ export const sendEmailVerification = async (
 export const sendEmailResetPassword = async ({
   email,
   otp,
-  subject,
-  account_type,
-  role
+  subject
 }: {
   email: string
   otp: number
   subject: string
-  account_type: ACCOUNT_TYPE
-  role: ROLE_TYPE
 }) => {
   try {
     const htmlContent = `
@@ -502,7 +499,7 @@ export const sendEmailWarningVipExpire = async ({
             <a href="${env_config.CLIENT_PORTS + `/renew?package_id=${vip_package._id}`}" class="button">Gia hạn ngay</a>
         </div>
         <div class="footer">
-            <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi tại <a href="mailto:support@example.com">support@example.com</a>.</p>
+            <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi tại <a href="mailto:${env_config.EMAIL_AUTH_USER}">${env_config.EMAIL_AUTH_USER}</a>.</p>
             <p>Trân trọng,<br>Đội ngũ Hỗ trợ Khách hàng</p>
         </div>
     </div>
@@ -605,7 +602,7 @@ export const sendEmailReportSuccess = async ({
             <p>Cảm ơn bạn đã giúp chúng tôi xây dựng một cộng đồng an toàn và lành mạnh.</p>
         </div>
         <div class="footer">
-              <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi tại <a href="mailto:support@example.com">support@example.com</a>.</p>
+              <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi tại <a href="mailto:${env_config.EMAIL_AUTH_USER}">${env_config.EMAIL_AUTH_USER}</a>.</p>
 
             <p>Trân trọng,<br>Đội ngũ hỗ trợ khách hàng</p>
 
@@ -710,6 +707,110 @@ export const sendEmailReportProcessPunishment = async ({
             <p>Bài viết của bạn đã vi phạm quy định của chúng tôi và đã bị gỡ khỏi hệ thống.</p>
             <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi tại <a href="mailto:${env_config.EMAIL_AUTH_USER}">${env_config.EMAIL_AUTH_USER}</a>.</p>
 
+        </div>
+        <div class="footer">
+            <p>Trân trọng,<br>Đội ngũ hỗ trợ khách hàng</p>
+        </div>
+    </div>
+</body>
+</html>
+`
+    const transporter = nodemailer.createTransport({
+      host: env_config.EMAIL_HOST,
+      service: env_config.EMAIL_SERVICE,
+      port: Number(env_config.EMAIL_PORT),
+      secure: Boolean(env_config.EMAIL_SERCURE),
+      auth: {
+        user: env_config.EMAIL_AUTH_USER,
+        pass: env_config.EMAIL_AUTH_PASS
+      }
+    })
+    return await transporter.sendMail({
+      from: env_config.EMAIL_AUTH_USER,
+      to: user.email,
+      subject: subject,
+      html: htmlContent
+    })
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+//email send reported
+export const sendEmailReported = async ({
+  user,
+  status,
+  content,
+  subject
+}: {
+  user: USER_SCHEMA
+  status: string
+  content: string[]
+  subject: string
+}) => {
+  try {
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 5px 5px 0 0;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .content h2 {
+            color: #333333;
+        }
+        .content p {
+            color: #666666;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: #4CAF50;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #999999;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Thông báo báo cáo vi phạm ${status}</h1>
+        </div>
+        <div class="content">
+            <h2>Xin chào ${user.full_name},</h2>
+            <p>Chúng tôi xem xét bạn bị vi phạm "${content}".</p>
+            <p>Chúng tôi sẽ xử phạt bạn theo quy định của chúng tôi.</p>
+            <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi tại <a href="mailto:${env_config.EMAIL_AUTH_USER}">${env_config.EMAIL_AUTH_USER}</a>.</p>
         </div>
         <div class="footer">
             <p>Trân trọng,<br>Đội ngũ hỗ trợ khách hàng</p>

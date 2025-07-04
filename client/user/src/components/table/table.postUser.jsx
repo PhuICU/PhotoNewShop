@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@mui/material";
 import { formatPrice } from "../../utils/Funtion";
-
+import { Link } from "react-router-dom";
 import { getProperties } from "../../api/propertiesApi";
 
 import { getDistricts, getProvinces, getWards } from "../../api/addressApi";
 
 import { updatePhotoNew } from "../../api/photoNewApi";
-
+import { Carousel } from "react-bootstrap";
 import {
+  IconButton,
   Box,
   Divider,
   FormLabel,
@@ -21,16 +22,23 @@ import {
   ImageListItem,
   Typography,
 } from "@mui/material";
-
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import ShareIcon from "@mui/icons-material/Share";
+import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined";
 import { CameraOutlined } from "@mui/icons-material";
 import Textarea from "@mui/joy/Textarea";
 
 import { Modal, Form } from "antd";
+import "../../utils/Language/i18n";
+import { useTranslation } from "react-i18next";
 
 function PostUser({ dataNewUser, user }) {
   const [open2, setOpen2] = useState(false);
+  const [open3, setOpen3] = useState(false);
   const handleOpen2 = () => setOpen2(true);
   const handleClose2 = () => setOpen2(false);
+  const handleOpen3 = () => setOpen3(true);
+  const handleClose3 = () => setOpen3(false);
   const [properties, setProperties] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -38,6 +46,7 @@ function PostUser({ dataNewUser, user }) {
   const [districts1, setDistricts1] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
+  const { t } = useTranslation();
   const [editNew, setEditNew] = useState({
     property_type_id: "654ba93cba62368b56847d72",
     address: {
@@ -67,6 +76,8 @@ function PostUser({ dataNewUser, user }) {
     },
     posted_by: user,
   });
+  const [previewItem, setPreviewItem] = useState(null);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchProperties = async () => {
       try {
@@ -218,6 +229,25 @@ function PostUser({ dataNewUser, user }) {
     }
   };
 
+  const typeArr = [
+    {
+      value: "camera",
+      label: "Máy ảnh",
+    },
+    {
+      value: "lens",
+      label: "Ống kính",
+    },
+    {
+      value: "camcorder",
+      label: "Máy quay phim",
+    },
+    {
+      value: "accessories",
+      label: "Phụ kiện",
+    },
+  ];
+
   return (
     <div>
       <div className="mt-4 ">
@@ -288,6 +318,26 @@ function PostUser({ dataNewUser, user }) {
                             Chỉnh sửa thông tin
                           </Button>
                           <p className="text-danger">{item.status}</p>
+                          {item.status === "pending" ? (
+                            <Button
+                              style={{ fontSize: "12px" }}
+                              onClick={() => {
+                                handleOpen3();
+                                setPreviewItem(item);
+                              }}
+                            >
+                              Xem trước
+                            </Button>
+                          ) : (
+                            <Button>
+                              <Link
+                                to={`/post/${item._id}`}
+                                style={{ fontSize: "12px" }}
+                              >
+                                Xem chi tiết
+                              </Link>
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     )
@@ -662,6 +712,149 @@ function PostUser({ dataNewUser, user }) {
           </div>
         </Box>
         <hr />
+      </Modal>
+      <Modal
+        open={open3}
+        onOk={handleClose3}
+        onCancel={handleClose3}
+        okText="Đóng"
+        cancelText="Hủy"
+        width={800}
+      >
+        <div>
+          <h4>Xem trước tin đăng</h4>
+
+          <div className="d-flex justify-content-center mt-4">
+            <Carousel style={{ width: "560px" }}>
+              {previewItem?.images &&
+                previewItem?.images.map((item, index) => (
+                  <Carousel.Item key={index}>
+                    <img
+                      width={560}
+                      height={460}
+                      src={item.url}
+                      alt={`Slide ${index}`}
+                    />
+                  </Carousel.Item>
+                ))}
+            </Carousel>
+          </div>
+          <div className="mt-4">
+            <h5>{previewItem?.title}</h5>
+          </div>
+          <hr />
+          <div className="mt-4 row">
+            <div className="col-8 row">
+              <div className="col">
+                <h6>Mức giá</h6>
+                <h6>
+                  {/* {formatPrice(
+                    previewItem?.price?.value
+                      ? previewItem?.price?.value
+                      : previewItem?.price
+                  )}{" "} */}
+                  {previewItem?.price?.unit}
+                </h6>
+              </div>
+            </div>
+            <div className="col-4 d-flex justify-content-end">
+              <IconButton
+                onClick={(event) => handleFavorite(event, previewItem._id)}
+              >
+                <FavoriteIcon />
+              </IconButton>
+
+              <IconButton aria-label="share">
+                <ShareIcon />
+              </IconButton>
+              <IconButton
+                aria-label="report"
+                onClick={() => {
+                  showModal();
+                  setReport({
+                    ...report,
+                    report_type: "POST",
+                  });
+                }}
+              >
+                <ReportProblemOutlinedIcon />
+              </IconButton>
+            </div>
+          </div>
+          <hr />
+          <div>
+            <h5>Thông tin mô tả</h5>
+            <p>{previewItem?.description}</p>
+          </div>
+          <hr />
+          <div>
+            <h5>Thông tin chi tiết</h5>
+            <div className="row">
+              <div className="col-6">
+                <p>
+                  <span>Địa chỉ: </span>
+                  {previewItem?.address.province},{" "}
+                  {previewItem?.address.district}, {previewItem?.address.ward}
+                </p>
+              </div>
+              <div className="col-6">
+                <p>
+                  {previewItem?.type == "camera" ? (
+                    <div>
+                      <span>Loại máy: </span>
+                      {
+                        properties?.find(
+                          (item) => item._id === previewItem.property_type_id
+                        )?.name
+                      }
+                    </div>
+                  ) : (
+                    <div>
+                      <span>Loại máy: </span>
+                      {
+                        typeArr.find((item) => item.value === previewItem?.type)
+                          ?.label
+                      }
+                    </div>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <hr />
+          <div>
+            <h5>Vị trí</h5>
+            <div
+              style={{
+                height: "400px",
+              }}
+            >
+              {!loading && (
+                <MapContainer
+                  center={coordinates}
+                  zoom={13}
+                  style={{ height: "400px", width: "800px" }}
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <Marker position={coordinates}>
+                    <Popup></Popup>
+                  </Marker>
+                </MapContainer>
+              )}
+            </div>
+            <div>
+              <p>
+                Xem đuờng đi{" "}
+                <Link
+                  to={`/map/${previewItem?.address.province}/${previewItem?.address.district}/${previewItem?.address.ward}`}
+                >
+                  tại đây
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
       </Modal>
     </div>
   );

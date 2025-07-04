@@ -60,16 +60,7 @@ const registerBodyValidator = validateSchema(
           options: { min: 6, max: 150 }
         }
       },
-      account_type: {
-        notEmpty: { errorMessage: messages.errors.register.account_type.require },
-        custom: {
-          options: async (value) => {
-            if (!Object.values(ACCOUNT_TYPE).includes(value)) {
-              throw new Error(messages.errors.register.account_type.invalid)
-            } else return true
-          }
-        }
-      },
+
       confirm_password: {
         optional: true,
         custom: {

@@ -6,6 +6,7 @@ import { responseSuccess } from '~/utils/response'
 import { REPORT_STATUS } from '~/enums/util.enum'
 import { TokenPayload } from '~/type'
 import { sendEmailReportSuccess } from '~/utils/email'
+import { sendEmailReported } from '~/utils/email'
 import photoNewsService from '~/services/photo_news.service'
 import userService from '~/services/users.service'
 
@@ -52,6 +53,25 @@ const updateReportStatus = async (
 ) => {
   const { report_id, status } = req.body
   const result = await reportsInteractionService.updateReportStatus(report_id, status)
+  const report = await reportsInteractionService.getReportById(report_id)
+  if (report) {
+    const user = (await userService.getUserById(report.reported_id.toString())) as USER_SCHEMA
+    const { content } = report
+
+    console.log(content),
+      await sendEmailReported({
+        user,
+        status,
+        content,
+        subject: 'Báo cáo của bạn đã được xử lý'
+      })
+  } else {
+    return responseSuccess(res, {
+      message: 'Báo cáo không tồn tại',
+      data: null
+    })
+  }
+
   return responseSuccess(res, {
     message: 'Xử lý báo cáo thành công',
     data: result

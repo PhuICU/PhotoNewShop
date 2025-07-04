@@ -4,7 +4,7 @@ export interface RegisterRequest {
   full_name: string
   email: string
   password: string
-  account_type: ACCOUNT_TYPE
+
   role: ROLE_TYPE
   confirm_password?: string
 }

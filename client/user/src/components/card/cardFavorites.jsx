@@ -16,11 +16,12 @@ import { Button, CardActions, IconButton } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { pink } from "@mui/material/colors";
 
+import "../../utils/Language/i18n"; // Import i18n for translations
+import { useTranslation } from "react-i18next"; // Import useTranslation hook
+
 function CardFavorites() {
   const [dataFavorites, setDataFavorites] = useState([]);
-  const [value, setValue] = useState(null);
-  const [inputValue, setInputValue] = useState("");
-  const options = ["Option 1", "Option 2"];
+  const { t } = useTranslation(); // Initialize translation hook
   const handleUnFavorite = async (e, id) => {
     try {
       const res = await unFavorite(id);
@@ -53,37 +54,14 @@ function CardFavorites() {
       <div className="mt-4 container">
         <div className="container-fluid row">
           <div className="col fw-bold">
-            Tổng số tin đã thích: {dataFavorites.length}
-          </div>
-          <div className="col">
-            <Form>
-              <Form.Item>
-                <Autocomplete
-                  size="small"
-                  value={value}
-                  onChange={(event, newValue) => {
-                    setValue(newValue);
-                  }}
-                  sx={{ width: 350 }}
-                  inputValue={inputValue}
-                  onInputChange={(event, newInputValue) => {
-                    setInputValue(newInputValue);
-                  }}
-                  id="controllable-states-demo"
-                  options={options}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Tin lưu mới nhất" />
-                  )}
-                />
-              </Form.Item>
-            </Form>
+            {t("Tổng số tin đã thích")}: {dataFavorites.length}
           </div>
         </div>
         <div>
           {" "}
           {dataFavorites.length ? (
             dataFavorites.map((item, index) => (
-              <Card sx={{ display: "flex", height: 290 }} key={index}>
+              <Card sx={{ display: "flex", height: 250 }} key={index}>
                 <CardMedia
                   component="img"
                   sx={{ width: 200 }}
@@ -109,7 +87,7 @@ function CardFavorites() {
                     <Button variant="outlined" className=" text-dark ">
                       <Link to={`/post/${item._id}`} className="nav-link">
                         {" "}
-                        Xem chi tiết
+                        {t("Xem chi tiết")}
                       </Link>
                     </Button>
 
@@ -136,7 +114,7 @@ function CardFavorites() {
               </Card>
             ))
           ) : (
-            <p className="mt-4">Chưa có tin lưu</p>
+            <p className="mt-4">{t("Chưa có tin lưu")}</p>
           )}
           <br />
         </div>

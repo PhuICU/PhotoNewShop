@@ -3,6 +3,8 @@ import { useFetchRecipientUser } from "../../hook/useRecipientUser";
 import { timeSince } from "../../utils/Funtion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import instance from "../../api/instanApi";
+import "../../utils/Language/i18n"; // Import i18n for translations
+import { useTranslation } from "react-i18next"; // Import useTranslation hook
 
 const UserChat = ({ chat, user }) => {
   const { recipientUser } = useFetchRecipientUser(chat, user);
@@ -12,6 +14,7 @@ const UserChat = ({ chat, user }) => {
     senderId: user,
     chatId: idChat,
   });
+  const { t } = useTranslation(); // Initialize translation hook
 
   const { data: data1, isLoading } = useQuery({
     queryKey: ["messages", idChat], // include 'id' in queryKey to refetch on change
@@ -80,7 +83,7 @@ const UserChat = ({ chat, user }) => {
 
                   <div className="pt-1">
                     <p className="small text-muted mb-1">
-                      {timeSince(messages[messages.length - 1]?.created_at)}
+                      {t(timeSince(messages[messages.length - 1]?.created_at))}
                     </p>
                     <span className="badge bg-danger float-end">1</span>
                   </div>

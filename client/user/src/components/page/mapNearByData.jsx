@@ -64,18 +64,35 @@ const MapComponent = () => {
     fetchProperties();
   }, []);
 
-  const [userCoords, setUserCoords] = useState([10.045222, 105.746857]);
+  const [userCoords, setUserCoords] = useState([
+    // Đại học Cần Thơ
+    10.0451, 105.7469,
+  ]);
   const [markers, setMarkers] = useState([]);
 
   useEffect(() => {
     const getUserLocation = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          setUserCoords([position.coords.latitude, position.coords.longitude]);
-        });
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            resolve([position.coords.latitude, position.coords.longitude]);
+          },
+          (error) => {
+            reject(error);
+          }
+        );
+      });
+    };
+
+    const fetchCoordinates = async () => {
+      try {
+        const userLocation = await getUserLocation();
+        setUserCoords(userLocation);
+      } catch (error) {
+        console.error("Error fetching location data:", error);
       }
     };
-    getUserLocation();
+    fetchCoordinates();
   }, []);
 
   useEffect(() => {
@@ -226,7 +243,7 @@ const MapComponent = () => {
         style={{ height: "500px", width: "1270px" }}
         zoomControl={false}
       >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <TileLayer url="https://api.maptiler.com/maps/outdoor-v2/{z}/{x}/{y}.png?key=NTEaCK1Wym5uTXrXu0qE" />
         <Marker
           position={userCoords}
           icon={L.icon({
@@ -351,10 +368,15 @@ const MapComponent = () => {
           <h3> Thông tin máy</h3>
           <h5 className="mt-4">{detail.title}</h5>
           <p>{detail.description}</p>
-          <p>
-            <span className="fw-bolder">Kiểu máy:</span>{" "}
-            {propertyTypes.find((p) => p._id === detail.property_type_id)?.name}
-          </p>
+          {propertyTypes.find((p) => p._id === detail.property_type_id) ? (
+            <p>
+              <span className="fw-bolder">Kiểu máy:</span>{" "}
+              {
+                propertyTypes.find((p) => p._id === detail.property_type_id)
+                  ?.name
+              }
+            </p>
+          ) : null}
           <p>
             <span className="fw-bolder">Loại máy:</span>{" "}
             {typeArr.find((t) => t.value === detail.type)?.label}

@@ -4,10 +4,10 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import instance from "../../api/instanApi";
 import useScrollToTop from "../../hook/useScrollToTop";
 import useQueryParams from "../../hook/useQueryParam";
-
+import { useTranslation } from "react-i18next";
 import { red, pink } from "@mui/material/colors";
 import { styled } from "@mui/material/styles";
-
+import "../../utils/Language/i18n";
 import { Col, Row, Input } from "antd";
 import {
   Card,
@@ -54,6 +54,8 @@ function HomePage() {
     property: "",
     content: "",
   });
+
+  const { t } = useTranslation();
 
   const navigate = useNavigate();
 
@@ -185,6 +187,13 @@ function HomePage() {
     setWards(data);
   };
 
+  const [visibleCount, setVisibleCount] = useState(8);
+
+  // Hàm xử lý khi nhấn nút "Xem thêm"
+  const handleLoadMore = () => {
+    setVisibleCount((prevCount) => prevCount + 8); // Tăng thêm 10 item mỗi lần
+  };
+
   useScrollToTop();
   return (
     <div>
@@ -216,7 +225,7 @@ function HomePage() {
               <div className="container-fluid mt-4 d-flex justify-content-center">
                 <FormControl>
                   <TextField
-                    placeholder="    Tìm kiếm"
+                    placeholder={t("  Tìm kiếm")}
                     size="small"
                     sx={{ width: "670px" }}
                     variant="outlined"
@@ -239,23 +248,22 @@ function HomePage() {
                               backgroundColor: "rgba(0, 0, 0, 0)",
                             }}
                             onChange={handleSearchChange}
-                            key={searchItem.property}
                           >
                             {searchItem.property === "" ? (
                               <option selected value="" className="">
                                 <Typography variant="caption">
-                                  Kiểu máy
+                                  {t("Kiểu máy")}
                                 </Typography>
                               </option>
                             ) : (
                               <Typography variant="caption">
-                                {searchItem.property}
+                                {t("searchItem.property")}
                               </Typography>
                             )}
 
                             {properties?.map((item, index) => (
                               <option value={item.name} key={index}>
-                                {item.name}
+                                {t("item.name")}
                               </option>
                             ))}
                           </select>
@@ -265,7 +273,7 @@ function HomePage() {
                         <InputAdornment position="start">
                           <ColorButton1 onClick={onSearch}>
                             <Typography variant="caption">
-                              <SearchIcon /> Tìm kiếm
+                              <SearchIcon /> {t("Tìm kiếm")}
                             </Typography>
                           </ColorButton1>
                         </InputAdornment>
@@ -296,7 +304,9 @@ function HomePage() {
                         {formatAddress.ward},{formatAddress.street}
                       </Typography>
                     ) : (
-                      <Typography variant="caption">Trên toàn quốc</Typography>
+                      <Typography variant="caption">
+                        {t("Trên toàn quốc")}
+                      </Typography>
                     )}
                   </Button>
                   <ul
@@ -305,7 +315,7 @@ function HomePage() {
                   >
                     <li>
                       <a className="dropdown-item">
-                        <h4>Khu vực </h4>
+                        <h4>{t("Khu vực")} </h4>
                         <form>
                           <div>
                             <select
@@ -318,7 +328,9 @@ function HomePage() {
                               // onClick={handleAddressChange}
                               value={selectedProvince}
                             >
-                              <option selected>Chọn tỉnh, thành phố</option>
+                              <option selected>
+                                {t("Chọn tỉnh, thành phố")}
+                              </option>
                               {provinces && provinces.length > 0
                                 ? provinces.map((item, index) => {
                                     return (
@@ -346,7 +358,7 @@ function HomePage() {
                               disabled={!selectedProvince}
                             >
                               <option value="" selected>
-                                Chọn quận, huyện
+                                {t("Chọn quận, huyện")}
                               </option>
                               {districtFilter && districtFilter.length > 0
                                 ? districtFilter.map((item, index) => {
@@ -372,7 +384,7 @@ function HomePage() {
                               name="ward"
                             >
                               <option value="" selected>
-                                Chọn phường, xã
+                                {t("Chọn phường, xã")}
                               </option>
                               {wardFilter && wardFilter.length > 0
                                 ? wardFilter.map((item, index) => {
@@ -391,7 +403,15 @@ function HomePage() {
                               type="text"
                               name="street"
                               className="form-control"
-                              placeholder="Đường/Phố"
+                              placeholder={t("Chọn địa chỉ")}
+                              style={{
+                                display: "-webkit-box",
+                                WebkitLineClamp: 1,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden",
+                                width: "220px",
+                                backgroundColor: "rgba(0, 0, 0, 0)",
+                              }}
                               value={searchItem.street}
                               onChange={handleSearchChange}
                             />
@@ -408,20 +428,22 @@ function HomePage() {
                   <select
                     name="price"
                     id=""
-                    className="form-select text-white"
+                    className="form-select text-white text-center w-full border px-2 "
                     style={{
                       display: "-webkit-box",
                       WebkitLineClamp: 1,
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
-                      width: "120px",
+                      width: "150px",
                       backgroundColor: "rgba(0, 0, 0, 0)",
                     }}
                     onChange={handleSearchChange}
                   >
                     {searchItem.price === "" ? (
                       <option selected value="" className="">
-                        <Typography variant="caption">{"Mức giá"}</Typography>
+                        <Typography variant="caption">
+                          {t("Mức giá")}
+                        </Typography>
                       </option>
                     ) : (
                       <Typography variant="caption">
@@ -430,25 +452,25 @@ function HomePage() {
                     )}
 
                     <option className="text-dark" value="1">
-                      Dưới 1 triệu
+                      {t("Dưới 1 triệu")}
                     </option>
                     <option className="text-dark" value="1-3">
-                      1 - 3 triệu
+                      {t("1 - 3 triệu")}
                     </option>
                     <option className="text-dark" value="3-5">
-                      3 - 5 triệu
+                      {t("3 - 5 triệu")}
                     </option>
                     <option className="text-dark" value="5-10">
-                      5 - 10 triệu
+                      {t("5 - 10 triệu")}
                     </option>
                     <option className="text-dark" value="10-40">
-                      10 - 40 triệu
+                      {t("10 - 40 triệu")}
                     </option>
                     <option className="text-dark" value="40-70">
-                      40 - 70 triệu
+                      {t("40 - 70 triệu")}
                     </option>
                     <option className="text-dark" value="70-100">
-                      70 - 100 triệu
+                      {t("70 - 100 triệu")}
                     </option>
                   </select>
                 </div>
@@ -467,13 +489,13 @@ function HomePage() {
       </div>
       <div className="mt-4">
         <Divider textAlign="left">
-          <h3>Tin dành cho bạn </h3>
+          <h3>{t("Tin dành cho bạn")} </h3>
         </Divider>
         <div className="container">
           <Button type="outlined">
             <Link to={"/map-nearby"} className="nav-link">
               {" "}
-              Xem trên bản đồ{" "}
+              {t("Xem trên bản đồ")}{" "}
               <i className="fa fa-map-marker" aria-hidden="true"></i>
             </Link>
           </Button>
@@ -481,12 +503,27 @@ function HomePage() {
         <div className="mt-4">
           <div className="container">
             <Row gutter={[16, 16]}>
-              {post?.map((item, index) => (
+              {post?.slice(0, visibleCount).map((item, index) => (
                 <Col span={6} key={index}>
                   <CardPhotoNew {...item} />
                 </Col>
               ))}
             </Row>
+            {visibleCount < post?.length && (
+              <div style={{ textAlign: "center", marginTop: 20 }}>
+                <Button
+                  type="primary"
+                  onClick={handleLoadMore}
+                  style={{
+                    backgroundColor: "rgba(0, 0, 0, 0.2)",
+                    color: "white",
+                    border: "none",
+                  }}
+                >
+                  {t("Xem thêm")}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
