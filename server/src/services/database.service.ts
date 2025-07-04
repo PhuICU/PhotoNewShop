@@ -37,6 +37,7 @@ class DatabaseService {
   }
   // Get the database collection
   get users(): Collection<USER_SCHEMA> {
+    console.log('Users collection:', env_config.DB_COLLECTION.USERS)
     return this.db.collection(env_config.DB_COLLECTION.USERS as string)
   }
   get refresh_tokens(): Collection<REFRESH_TOKEN_SCHEMA> {

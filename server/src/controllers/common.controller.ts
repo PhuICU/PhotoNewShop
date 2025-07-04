@@ -19,11 +19,10 @@ const register = async (req: Request<ParamsDictionary, any, RegisterRequest, any
     const token = await JwtModule.signEmailVerifyToken({
       user_id: user._id.toString(),
       verify: user.verify,
-      role: user.role,
-      account_type: user.account_type
+      role: user.role
     })
     const updateUser = await userService.updateEmailVerifyToken(user._id.toString(), token)
-    await sendEmailVerification(user.email, token, 'Xác thực email', user.account_type, user.role)
+    await sendEmailVerification(user.email, token, 'Xác thực email', user.role)
   }
   return responseSuccess(res, {
     message: 'Tạo tài khoản thành công',
@@ -32,6 +31,7 @@ const register = async (req: Request<ParamsDictionary, any, RegisterRequest, any
 }
 const login = async (req: Request<ParamsDictionary, any, LoginRequest, any>, res: Response) => {
   const payload = req.body
+  console.log('payload', payload)
   const result = await userService.login(payload)
   if (!result.access_token && !result.refresh_token) {
     return responseSuccess(res, {
@@ -97,7 +97,7 @@ const resendEmailVerification = async (req: Request<ParamsDictionary, any, any, 
     result.email,
     result.email_verify_token,
     'Xác thực email',
-    result.account_type,
+
     result.role
   )
   return responseSuccess(res, {

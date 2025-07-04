@@ -6,10 +6,12 @@ import { timeSince } from "../../utils/Funtion";
 import InputEmoji from "react-input-emoji";
 import { Button } from "@mui/material";
 import instance from "../../api/instanApi";
+import "../../utils/Language/i18n"; // Import i18n for translations
+import { useTranslation } from "react-i18next"; // Import useTranslation hook
 
 const ChatBox = ({ chat, user, id }) => {
   const { recipientUser } = useFetchRecipientUser(chat, user);
-
+  const { t } = useTranslation(); // Initialize translation hook
   const [message, setMessage] = useState({
     text: "",
     senderId: user,
@@ -71,7 +73,7 @@ const ChatBox = ({ chat, user, id }) => {
           className="text-center"
           style={{ paddingTop: "2rem", fontSize: "1.2rem" }}
         >
-          Đang tải đoạn chat, xin hãy chờ..
+          {t("Đang tải đoạn chat, xin hãy chờ..")}
         </p>
       </div>
     );
@@ -101,7 +103,7 @@ const ChatBox = ({ chat, user, id }) => {
               paddingBottom: "300px",
             }}
           >
-            Chưa có cuộc trò chuyện nào
+            {t("Chưa có cuộc trò chuyện nào")}
           </p>
         ) : (
           messages.map((msg) => (
@@ -137,7 +139,11 @@ const ChatBox = ({ chat, user, id }) => {
               >
                 <div className="card-header d-flex justify-content-between p-3">
                   <p className="fw-bold mb-0">
-                    {msg.senderId === user ? "Bạn" : recipientUser?.full_name}
+                    {msg.senderId === user ? (
+                      <p>{t("Bạn")}</p>
+                    ) : (
+                      recipientUser?.full_name
+                    )}
                   </p>
                   <p className="text-muted small mb-0">
                     <i className="far fa-clock"></i> {timeSince(msg.created_at)}

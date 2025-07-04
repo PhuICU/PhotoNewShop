@@ -51,13 +51,13 @@ class UserService {
     const result = await Promise.all([
       JwtModule.signAcessToken({
         user_id: user._id.toString(),
-        account_type: user.account_type,
+
         role: user.role,
         verify: user.verify
       }),
       JwtModule.signRefreshToken({
         user_id: user._id.toString(),
-        account_type: user.account_type,
+
         role: user.role,
         verify: user.verify
       })
@@ -74,13 +74,13 @@ class UserService {
     const [n_at, n_rt, _] = await Promise.all([
       JwtModule.signAcessToken({
         user_id: user._id.toString(),
-        account_type: user.account_type,
+
         role: user.role,
         verify: user.verify
       }),
       JwtModule.signRefreshToken({
         user_id: user._id.toString(),
-        account_type: user.account_type,
+
         role: user.role,
         verify: user.verify,
         exp: decoded_refresh_token.exp
@@ -126,8 +126,7 @@ class UserService {
     const token = await JwtModule.signEmailVerifyToken({
       user_id: user._id.toString(),
       verify: user.verify,
-      role: user.role,
-      account_type: user.account_type
+      role: user.role
     })
     return await this.updateEmailVerifyToken(user._id.toString(), token)
   }
@@ -158,8 +157,7 @@ class UserService {
     const result = await sendEmailResetPassword({
       email: user.email,
       otp,
-      account_type: user.account_type,
-      role: user.role,
+
       subject: 'Đặt lại mật khẩu'
     })
     return await databaseService.users.findOneAndUpdate(

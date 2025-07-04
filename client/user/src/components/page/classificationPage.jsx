@@ -21,7 +21,8 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import useQueryParams from "../../hook/useQueryParam";
 import instance from "../../api/instanApi";
 import { getWards, getDistricts, getProvinces } from "../../api/addressApi";
-
+import "../../utils/Language/i18n";
+import { useTranslation } from "react-i18next";
 function ClassificationPage() {
   const queryParams = useQueryParams();
   const [currentPage, setCurrentPage] = useState(1);
@@ -29,6 +30,8 @@ function ClassificationPage() {
   const [filter, setFilter] = useState({
     price: "",
   });
+
+  const { t } = useTranslation();
 
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -165,18 +168,20 @@ function ClassificationPage() {
                 underline="hover"
                 color="inherit"
                 className="nav-link"
-                to={`/classification?type=${queryParams.type}`}
+                to={`/classfication?type=${queryParams.type}`}
               >
-                {typeArr.find((type) => type.value === queryParams.type)?.label}
+                {t(queryParams.type)}
               </Link>
-              <Typography color="text.primary">Tất cả </Typography>
+              <Typography color="text.primary">{t("Tất cả")} </Typography>
             </Breadcrumbs>
           </div>
           <div className="mt-4">
-            <h5> Trên toàn quốc</h5>
+            <h5>{t("Trên toàn quốc")} </h5>
           </div>
           <div>
-            <p>Hiện có {data?.length} tin.</p>
+            <p>
+              {t("Hiện có")} {data?.length} {t("tin")}.
+            </p>
           </div>
         </div>
         <div className="mt-4">
@@ -335,7 +340,7 @@ function ClassificationPage() {
           <Card>
             <div className="container mt-4 ">
               <h6 className="d-flex justify-content-center">
-                Lọc theo khoảng giá
+                {t("Lọc theo khoảng giá")}
               </h6>
               <div className="d-flex justify-content-center">
                 <ul className="navbar-nav">
@@ -346,7 +351,7 @@ function ClassificationPage() {
                       })
                     }
                   >
-                    Dưới 1 triệu
+                    {t("Dưới 1 triệu")}
                   </li>
                   <li
                     onClick={() =>
@@ -355,7 +360,7 @@ function ClassificationPage() {
                       })
                     }
                   >
-                    1 - 3 triệu
+                    {t("1 - 3 triệu")}
                   </li>
                   <li
                     onClick={() =>
@@ -364,7 +369,7 @@ function ClassificationPage() {
                       })
                     }
                   >
-                    3 - 5 triệu
+                    {t("3 - 5 triệu")}
                   </li>
                   <li
                     onClick={() =>
@@ -373,7 +378,7 @@ function ClassificationPage() {
                       })
                     }
                   >
-                    5 - 10 triệu
+                    {t("5 - 10 triệu")}
                   </li>
                   <li
                     onClick={() =>
@@ -382,7 +387,7 @@ function ClassificationPage() {
                       })
                     }
                   >
-                    10 - 40 triệu
+                    {t("10 - 40 triệu")}
                   </li>
                   <li
                     onClick={() =>
@@ -391,7 +396,7 @@ function ClassificationPage() {
                       })
                     }
                   >
-                    40 - 70 triệu
+                    {t("40 - 70 triệu")}
                   </li>
                   <li
                     onClick={() =>
@@ -400,7 +405,7 @@ function ClassificationPage() {
                       })
                     }
                   >
-                    70 - 100 triệu
+                    {t("70 - 100 triệu")}
                   </li>
                   <li
                     onClick={() =>
@@ -409,7 +414,7 @@ function ClassificationPage() {
                       })
                     }
                   >
-                    Trên 100 triệu
+                    {t("Trên 100 triệu")}
                   </li>
                 </ul>
               </div>

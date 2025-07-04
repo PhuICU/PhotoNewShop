@@ -15,7 +15,7 @@ interface UserTypes {
   email: string
   password: string
   role?: ROLE_TYPE
-  account_type: ACCOUNT_TYPE
+
   verify?: USER_VERIFY_STATUS
   avatar?: ImageTypes
   // Optional fields
@@ -41,7 +41,7 @@ export class USER_SCHEMA {
   password: string
   role: ROLE_TYPE
   verify: USER_VERIFY_STATUS
-  account_type: ACCOUNT_TYPE
+
   avatar: ImageTypes
   // Optional fields
   address: AddressTypes
@@ -63,7 +63,7 @@ export class USER_SCHEMA {
     this.password = user.password
     this.role = user.role || ROLE_TYPE.USER
     this.verify = user.verify || USER_VERIFY_STATUS.UNVERIFIED
-    this.account_type = user.account_type
+
     this.avatar = user.avatar || {
       _id: '',
       public_id: '',

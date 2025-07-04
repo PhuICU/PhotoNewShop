@@ -37,24 +37,13 @@ const verifyToken = ({ token, secretKey }: { token: string; secretKey: string })
       return resolve(decoded as TokenPayload)
     })
   })
-const signAcessToken = ({
-  user_id,
-  verify,
-  role,
-  account_type
-}: {
-  user_id: string
-  verify: USER_VERIFY_STATUS
-  role: ROLE_TYPE
-  account_type: ACCOUNT_TYPE
-}) =>
+const signAcessToken = ({ user_id, verify, role }: { user_id: string; verify: USER_VERIFY_STATUS; role: ROLE_TYPE }) =>
   signToken({
     payload: {
       user_id,
       verify,
       role,
-      token_type: TOKEN_TYPE.ACCESS_TOKEN,
-      account_type
+      token_type: TOKEN_TYPE.ACCESS_TOKEN
     },
     secretKey: env_config.ACCESS_TOKEN_SECRET_KEY as string,
     option: {
@@ -65,14 +54,12 @@ const signRefreshToken = ({
   user_id,
   verify,
   role,
-  exp,
-  account_type
+  exp
 }: {
   user_id: string
   verify: USER_VERIFY_STATUS
   role: ROLE_TYPE
   exp?: string | number
-  account_type: ACCOUNT_TYPE
 }) =>
   exp
     ? signToken({
@@ -80,8 +67,7 @@ const signRefreshToken = ({
           user_id,
           verify,
           role,
-          token_type: TOKEN_TYPE.REFRESH_TOKEN,
-          account_type
+          token_type: TOKEN_TYPE.REFRESH_TOKEN
         },
         secretKey: env_config.REFRESH_TOKEN_SECRET_KEY as string,
         option: {
@@ -93,8 +79,7 @@ const signRefreshToken = ({
           user_id,
           verify,
           role,
-          token_type: TOKEN_TYPE.REFRESH_TOKEN,
-          account_type
+          token_type: TOKEN_TYPE.REFRESH_TOKEN
         },
         secretKey: env_config.REFRESH_TOKEN_SECRET_KEY as string,
         option: {
@@ -104,21 +89,18 @@ const signRefreshToken = ({
 const signEmailVerifyToken = ({
   user_id,
   verify,
-  role,
-  account_type
+  role
 }: {
   user_id: string
   verify: USER_VERIFY_STATUS
   role: ROLE_TYPE
-  account_type: ACCOUNT_TYPE
 }) =>
   signToken({
     payload: {
       user_id,
       verify,
       role,
-      token_type: TOKEN_TYPE.EMAIL_VERIFY_TOKEN,
-      account_type
+      token_type: TOKEN_TYPE.EMAIL_VERIFY_TOKEN
     },
     secretKey: env_config.EMAIL_VERIFICATION_SECRET_KEY as string,
     option: {

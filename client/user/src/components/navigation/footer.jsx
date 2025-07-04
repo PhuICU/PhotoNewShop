@@ -1,5 +1,4 @@
-import React from "react";
-
+import { useEffect } from "react";
 import {
   TextField,
   Typography,
@@ -14,18 +13,19 @@ import { styled } from "@mui/material/styles";
 import { red } from "@mui/material/colors";
 
 import { GlobalOutlined } from "@ant-design/icons";
-
+import "../../utils/Language/i18n";
+import { useTranslation } from "react-i18next";
 import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
 
-import {
-  FacebookShareButton,
-  EmailShareButton,
-  FacebookIcon,
-  EmailIcon,
-} from "react-share";
+import { FacebookShareButton, FacebookIcon } from "react-share";
+// import { sendMail } from "../../utils/mail";
+import useAppStore from "../../hook/useAppStore";
 
 function footer() {
+  const { t, i18n } = useTranslation();
+  const language = useAppStore((state) => state.language);
+  const setLanguage = useAppStore((state) => state.setLanguage);
   const onSearch = () => {
     console.log("Search");
   };
@@ -35,7 +35,20 @@ function footer() {
     "&:hover": { backgroundColor: red[700] },
   }));
 
+  const user = localStorage.getItem("user1");
+
   const shareUrl = window.location.href;
+
+  console.log(user);
+
+  const handleLanguageChange = (lang) => {
+    setLanguage(lang);
+    i18n.changeLanguage(lang);
+  };
+
+  useEffect(() => {
+    i18n.changeLanguage(language);
+  }, [language]);
 
   return (
     <footer
@@ -65,7 +78,7 @@ function footer() {
           <div className="mt-4">
             <Typography>
               <FmdGoodOutlinedIcon />
-              Đường 3/2, quận Ninh Kiều, Tp Cần Thơ
+              {t("Đường 3/2, quận Ninh Kiều, Tp Cần Thơ")}
             </Typography>
           </div>
           <div className="mt-4 d-flex justify-content-start">
@@ -78,33 +91,33 @@ function footer() {
         </div>
         <div className="col-2">
           <div>
-            <Typography className="fw-bold">HƯỚNG DẪN</Typography>
+            <Typography className="fw-bold">{t("HƯỚNG DẪN")}</Typography>
           </div>
           <div className="mt-2">
             <ul className="navbar-nav">
-              <li className="mt-2">Về chúng tôi</li>
-              <li className="mt-2">Báo giá & hỗ trợ</li>
-              <li className="mt-2">Câu hỏi thường gặp</li>
-              <li className="mt-2">Góp ý báo lỗi</li>
+              <li className="mt-2">{t("Về chúng tôi")}</li>
+              <li className="mt-2">{t("Báo giá & hỗ trợ")}</li>
+              <li className="mt-2">{t("Câu hỏi thường gặp")}</li>
+              <li className="mt-2">{t("Góp ý báo lỗi")}</li>
             </ul>
           </div>
         </div>
         <div className="col-3">
           <div>
-            <Typography className="fw-bold">QUY ĐỊNH</Typography>
+            <Typography className="fw-bold">{t("QUY ĐỊNH")}</Typography>
           </div>
           <div className="mt-2">
             <ul className="navbar-nav">
-              <li className="mt-2">Quy định đăng tin</li>
-              <li className="mt-2">Quy chế hoạt động</li>
-              <li className="mt-2">Điều khoản thỏa thuận</li>
-              <li className="mt-2">Chính sách bảo mật</li>
-              <li className="mt-2">Giải quyết khiếu nại</li>
+              <li className="mt-2">{t("Quy định đăng tin")}</li>
+              <li className="mt-2">{t("Quy chế hoạt động")}</li>
+              <li className="mt-2">{t("Điều khoản thỏa thuận")}</li>
+              <li className="mt-2">{t("Chính sách bảo mật")}</li>
+              <li className="mt-2">{t("Giải quyết khiếu nại")}</li>
             </ul>
           </div>
         </div>
         <div className="col-3">
-          <div>
+          {/* <div>
             <Typography className="fw-bold">GỬI PHẢN HỒI</Typography>
             <TextField
               size="small"
@@ -125,9 +138,11 @@ function footer() {
                 ),
               }}
             />
-          </div>
+          </div> */}
           <div className="mt-4">
-            <Typography className="fw-bold">QUỐC GIA & NGÔN NGỮ</Typography>
+            <Typography className="fw-bold">
+              {t("QUỐC GIA & NGÔN NGỮ")}
+            </Typography>
             <FormControl
               fullWidth
               sx={{
@@ -138,19 +153,22 @@ function footer() {
             >
               <InputLabel id="demo-simple-select-label">
                 <GlobalOutlined />
-                <span> Quốc gia</span>
+                <span> {t("Quốc gia")}</span>
               </InputLabel>
               <Select
                 labelId="demo-simple-select-label"
                 id="demo-simple-select"
                 label="Age"
+                value={language}
+                onChange={(e) => handleLanguageChange(e.target.value)}
               >
-                <MenuItem value={10}>Việt Nam</MenuItem>
-                <MenuItem value={20}>Singapore</MenuItem>
-                <MenuItem value={30}>Malaysia</MenuItem>
-                <MenuItem value={40}>ThaiLan</MenuItem>
-                <MenuItem value={50}>Indonesia</MenuItem>
-                <MenuItem value={60}>Australia</MenuItem>
+                <MenuItem value={"vn"}>Việt Nam</MenuItem>
+                <MenuItem value={"en"}>English</MenuItem>
+                <MenuItem value={"fr"}>Français</MenuItem>
+                <MenuItem value={"es"}>Español</MenuItem>
+                <MenuItem value={"de"}>Deutsch</MenuItem>
+                <MenuItem value={"ja"}>日本語</MenuItem>
+                <MenuItem value={"zh"}>中文</MenuItem>
               </Select>
             </FormControl>
           </div>
@@ -166,21 +184,24 @@ function footer() {
           <div className="col-5">
             <div>
               <Typography variant="body2">
-                Giấy DKKD số 1234567890 do Sở KHTĐ Cần Thơ cấp lần đầu ngày
-                30/7/2024{" "}
+                {t(
+                  "Giấy DKKD số 1234567890 do Sở KHTĐ Cần Thơ cấp lần đầu ngày 30/7/2024"
+                )}{" "}
               </Typography>
             </div>
             <div>
               <Typography variant="body2">
-                Giấy phép thiết lập trang thông tin điện tử tổng hợp trên mạng
-                số 191/GP-TTĐT do Sở TTTT Cần Thơ cấp ngày 30/7/2024
+                {t(
+                  " Giấy phép thiết lập trang thông tin điện tử tổng hợp trên mạng số 191/GP-TTĐT do Sở TTTT Cần Thơ cấp ngày 30/7/2024"
+                )}
               </Typography>
             </div>
           </div>
           <div className="col-3">
             <Typography variant="body2">
-              Quy chế, quy định giao dịch có hiệu lực từ 08/08/2028 Ghi rõ nguồn
-              "PhotoGuy.com.vn" khi phát hành lại thông tin từ website này.
+              {t(
+                'Quy chế, quy định giao dịch có hiệu lực từ 08/08/2028 Ghi rõ nguồn "PhotoGuy.com.vn" khi phát hành lại thông tin từ website này.'
+              )}
             </Typography>
           </div>
           <div className="col-2">

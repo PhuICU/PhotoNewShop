@@ -12,6 +12,8 @@ import {
   IconButton,
   TablePagination,
 } from "@mui/material";
+import { Link } from "react-router-dom";
+import { Modal } from "antd";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -20,7 +22,10 @@ import { useQuery } from "@tanstack/react-query";
 import useQueryParams from "../../hook/useQueryParams";
 import instance from "../../api/instanApi";
 import { getProperties } from "../../api/propertiesApi";
-
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import ShareIcon from "@mui/icons-material/Share";
+import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined";
+import ImageCarousel from "../../hook/imageCarousel";
 function DashboardBrowseNew() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showClearIcon, setShowClearIcon] = useState("none");
@@ -28,6 +33,11 @@ function DashboardBrowseNew() {
   const [properties, setProperties] = useState([]);
   const [page, setPage] = useState(0); // Pagination page
   const [rowsPerPage, setRowsPerPage] = useState(10); // Rows per page
+  const [previewItem, setPreviewItem] = useState(null);
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  const [loading, setLoading] = useState(true);
 
   const handleUpdatePostStatus = async (id, status) => {
     try {
@@ -215,32 +225,51 @@ function DashboardBrowseNew() {
                           </IconButton>
                         </div>
                       </div>
-                    ) : (
+                    ) : item.status === "expired" ? (
                       <div className="row">
-                        <Popconfirm
-                          title="Bạn có chắc chắn muốn duyệt?"
-                          onConfirm={() =>
-                            handleUpdatePostStatus(item._id, "confirmed")
-                          }
-                          okText="Có"
-                          cancelText="Không"
-                        >
-                          <Button className="col" color="blue" type="link">
-                            Duyệt
+                        <div className="col">
+                          <Tag color="orange">Đã hết hạn</Tag>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="row">
+                          <Popconfirm
+                            title="Bạn có chắc chắn muốn duyệt?"
+                            onConfirm={() =>
+                              handleUpdatePostStatus(item._id, "confirmed")
+                            }
+                            okText="Có"
+                            cancelText="Không"
+                          >
+                            <Button className="col" color="blue" type="link">
+                              Duyệt
+                            </Button>
+                          </Popconfirm>
+                          <Popconfirm
+                            title="Bạn có chắc chắn muốn từ chối?"
+                            onConfirm={() =>
+                              handleUpdatePostStatus(item._id, "rejected")
+                            }
+                            okText="Có"
+                            cancelText="Không"
+                          >
+                            <Button className="col" type="link" danger>
+                              Từ chối
+                            </Button>
+                          </Popconfirm>
+                        </div>
+                        <div>
+                          <Button
+                            onClick={() => {
+                              setPreviewItem(item);
+                              handleOpen();
+                            }}
+                          >
+                            {" "}
+                            Xem bài đăng
                           </Button>
-                        </Popconfirm>
-                        <Popconfirm
-                          title="Bạn có chắc chắn muốn từ chối?"
-                          onConfirm={() =>
-                            handleUpdatePostStatus(item._id, "rejected")
-                          }
-                          okText="Có"
-                          cancelText="Không"
-                        >
-                          <Button className="col" type="link" danger>
-                            Từ chối
-                          </Button>
-                        </Popconfirm>
+                        </div>
                       </div>
                     )}
                   </TableCell>
@@ -264,6 +293,132 @@ function DashboardBrowseNew() {
           />
         </div>
       </div>
+      <Modal
+        visible={open}
+        onCancel={handleClose}
+        title="Xem bài đăng"
+        footer={null}
+        width={1000}
+        destroyOnClose
+      >
+        <div>
+          <div className="mt-4 d-flex justify-content-center">
+            <ImageCarousel images={previewItem?.images || []} />
+          </div>
+
+          <div className="mt-4">
+            <h5>{previewItem?.title}</h5>
+          </div>
+          <hr />
+          <div className="mt-4 row">
+            <div className="col-8 row">
+              <div className="col">
+                <h6>Mức giá</h6>
+                <h6>
+                  {previewItem?.price?.value} {previewItem?.price?.unit}
+                </h6>
+              </div>
+            </div>
+            <div className="col-4 d-flex justify-content-end">
+              <IconButton
+                onClick={(event) => handleFavorite(event, previewItem._id)}
+              >
+                <FavoriteIcon />
+              </IconButton>
+
+              <IconButton aria-label="share">
+                <ShareIcon />
+              </IconButton>
+              <IconButton
+                aria-label="report"
+                onClick={() => {
+                  showModal();
+                  setReport({
+                    ...report,
+                    report_type: "POST",
+                  });
+                }}
+              >
+                <ReportProblemOutlinedIcon />
+              </IconButton>
+            </div>
+          </div>
+          <hr />
+          <div>
+            <h5>Thông tin mô tả</h5>
+            <p>{previewItem?.description}</p>
+          </div>
+          <hr />
+          <div>
+            <h5>Thông tin chi tiết</h5>
+            <div className="row">
+              <div className="col-6">
+                <p>
+                  <span>Địa chỉ: </span>
+                  {previewItem?.address.province},{" "}
+                  {previewItem?.address.district}, {previewItem?.address.ward}
+                </p>
+              </div>
+              <div className="col-6">
+                <p>
+                  {previewItem?.type == "camera" ? (
+                    <div>
+                      <span>Loại máy: </span>
+                      {
+                        properties?.find(
+                          (item) => item._id === previewItem.property_type_id
+                        )?.name
+                      }
+                    </div>
+                  ) : (
+                    <div>
+                      <span>Loại máy: </span>
+                      {
+                        typeArray.find(
+                          (item) => item.value === previewItem?.type
+                        )?.label
+                      }
+                    </div>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <hr />
+          <div>
+            <h5>Vị trí</h5>
+            <div
+              style={{
+                height: "400px",
+              }}
+            >
+              {!loading && (
+                <MapContainer
+                  center={coordinates}
+                  zoom={13}
+                  style={{ height: "400px", width: "800px" }}
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <Marker position={coordinates}>
+                    <Popup></Popup>
+                  </Marker>
+                </MapContainer>
+              )}
+            </div>
+            <div>
+              <p>
+                Xem đuờng đi{" "}
+                <Link
+                  to={`/map/${previewItem?.address.province}/${previewItem?.address.district}/${previewItem?.address.ward}`}
+                >
+                  tại đây
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

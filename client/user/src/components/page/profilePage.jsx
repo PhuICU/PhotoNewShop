@@ -36,6 +36,9 @@ import { getProperties } from "../../api/propertiesApi";
 import { getDistricts, getProvinces, getWards } from "../../api/addressApi";
 import { getChatsOfUser } from "../../api/chatApi";
 
+import "../../utils/Language/i18n";
+import { useTranslation } from "react-i18next";
+
 function ProfilePage() {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
@@ -45,7 +48,7 @@ function ProfilePage() {
   const handleOpen1 = () => setOpen1(true);
   const handleClose1 = () => setOpen1(false);
 
-  const id = JSON.parse(localStorage.getItem("user1"))._id;
+  const id = JSON.parse(localStorage.getItem("user"))._id;
 
   const [password, setPassword] = useState({
     old_password: "",
@@ -86,6 +89,8 @@ function ProfilePage() {
   const [dataFavorites, setDataFavorites] = useState([]);
 
   const [HistoryVip, setHistoryVip] = useState([]);
+
+  const { t } = useTranslation();
 
   const getBase64 = (file) =>
     new Promise((resolve, reject) => {
@@ -416,28 +421,29 @@ function ProfilePage() {
                   className="bg-white text-dark mt-4 fw-bolder"
                   onClick={handleOpen}
                 >
-                  Cập nhật thông tin
+                  {t("Cập nhật thông tin")}
                 </Button>
               </div>
             </div>
             <br />
           </div>
           <div className="mt-4 container-fluid">
-            <h4>Thông tin cá nhân</h4>
+            <h4>{t("Thông tin cá nhân")}</h4>
             <div>
               <p>
-                <span className="fw-bold">Họ và tên: </span>{" "}
+                <span className="fw-bold">{t("Họ và tên")}: </span>{" "}
                 {dataUser?.full_name}
               </p>
               <p>
-                <span className="fw-bold">Số điện thoại: </span>{" "}
+                <span className="fw-bold">{t("Số điện thoại")}: </span>{" "}
                 {dataUser?.phone}
               </p>
               <p>
-                <span className="fw-bold">Email: </span> {dataUser?.email}
+                <span className="fw-bold">{t("Email")}: </span>{" "}
+                {dataUser?.email}
               </p>
               <p>
-                <span className="fw-bold">Địa chỉ: </span>{" "}
+                <span className="fw-bold">{t("Địa chỉ")}: </span>{" "}
                 {dataUser?.address?.province &&
                 dataUser?.address?.district &&
                 dataUser?.address?.ward
@@ -460,17 +466,17 @@ function ProfilePage() {
             <div className="row mt-4">
               <div className="col-4">
                 <Link to={"/up-vip"}>
-                  <ColorButton3>Nâng VIP</ColorButton3>
+                  <ColorButton3>{t("Nâng VIP")}</ColorButton3>
                 </Link>
               </div>
               <div className="col-4">
                 <Link to={"/instruction"}>
-                  <ColorButton3>Hướng dẫn</ColorButton3>
+                  <ColorButton3>{t("Hướng dẫn")}</ColorButton3>
                 </Link>
               </div>
               <div className="col-4">
                 <Link to={"/post/new"}>
-                  <ColorButton3>Đăng tin</ColorButton3>
+                  <ColorButton3>{t("Đăng tin")}</ColorButton3>
                 </Link>
               </div>
             </div>
@@ -478,22 +484,22 @@ function ProfilePage() {
           </div>
         </Paper>
         &emsp;
-        <Paper className="col-4 container-fluid p-3 mb-2 grad1">
+        <Paper className="col-4 container-fluid p-2 mb-2 grad1">
           <Paper sx={{ py: 2 }} className="mt-4 container-fluid">
-            <h5 className="">Thông tin tài khoản</h5>
+            <h5 className="">{t("Thông tin tài khoản")}</h5>
             <div className="d-flex justify-content-between container-fluid This is 25% opacity secondary background .bg-secondary.bg-gradient">
               <ul className="navbar-nav">
                 <li className="nav-item ">
-                  <p>Số lượng tin đã đăng</p>
+                  <p>{t("Số lượng tin đã đăng")}</p>
                 </li>
                 <li className="nav-item ">
-                  <p>Tài khoản Vip</p>
+                  <p>{t("Tài khoản Vip")}</p>
                 </li>
                 <li className="nav-item ">
-                  <p className="">Ngày hết hạn Vip</p>
+                  <p className="">{t("Ngày hết hạn Vip")}</p>
                 </li>
                 <li className="nav-item ">
-                  <p className="">Giới hạn tin đăng</p>
+                  <p className="">{t("Giới hạn tin đăng")}</p>
                 </li>
               </ul>
               <ul className="navbar-nav">
@@ -501,7 +507,7 @@ function ProfilePage() {
                   <p>{HistoryVip ? HistoryVip?.posting_used : 0}</p>
                 </li>
                 <li className=" fs-6">
-                  <p>{HistoryVip ? HistoryVip?.package?.packageName : 0}</p>
+                  <p>{HistoryVip ? t(HistoryVip?.package?.packageName) : 0}</p>
                 </li>
                 <li className=" fs-6">
                   <p>{HistoryVip ? endDate(HistoryVip?.end_date) : 0}</p>
@@ -523,25 +529,25 @@ function ProfilePage() {
               variant="contained"
               onClick={handleOpen1}
             >
-              Quản lý tài khoản
+              {t("Quản lý tài khoản")}
             </ColorButton2>
           </div>
         </Paper>
       </div>
       <br />
       <Divider textAlign="left">
-        <h4>Bài đăng của bạn</h4>
+        <h4>{t("Bài đăng của bạn")}</h4>
       </Divider>
       <PostUser dataNewUser={dataNewUser} user={id} />
 
       <Divider className="" textAlign="left">
-        <h4>Tin đăng đã lưu</h4>
+        <h4>{t("Tin đăng đã lưu")}</h4>
       </Divider>
 
       <CardFavorites dataFavorites={dataFavorites} />
 
       <Divider>
-        <h4>Tin nhắn của bạn</h4>
+        <h4>{t("Tin nhắn của bạn")}</h4>
       </Divider>
       {console.log(currentChat)}
       <div className="row  mt-4" style={{ paddingLeft: "80px" }}>
@@ -566,8 +572,9 @@ function ProfilePage() {
             ))
           ) : (
             <p>
-              Hiện chưa có đoạn chat nào, hãy nhắn tin với người khác để tạo
-              đoạn chat
+              {t(
+                "Hiện chưa có đoạn chat nào, hãy nhắn tin với người khác để tạo đoạn chat"
+              )}
             </p>
           )}
         </div>

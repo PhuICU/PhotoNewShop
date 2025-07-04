@@ -105,14 +105,7 @@ const ChatBoxUser = ({ user, info }) => {
   };
 
   return (
-    <div
-      style={{
-        height: "400px",
-
-        width: "290px",
-        overflowX: "hidden",
-      }}
-    >
+    <div style={{}}>
       {chat && chat._id ? (
         <button
           className="btn btn-info btn-block"
@@ -150,7 +143,15 @@ const ChatBoxUser = ({ user, info }) => {
       )}
       {isCollapsed && (
         <div className="collapse mt-3 show" id="collapseExample">
-          <div className="card" id="chat4">
+          <div
+            className="card"
+            id="chat4"
+            style={{
+              height: "400px",
+              overflowY: "scroll",
+              overflowX: "hidden",
+            }}
+          >
             <div className="card-body">
               {isLoading && idChat ? (
                 <div

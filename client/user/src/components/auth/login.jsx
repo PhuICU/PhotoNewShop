@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { login } from "../../api/authApi";
+import Cookies from "js-cookie";
 
 import {
   Button,
@@ -35,10 +36,16 @@ function Login() {
     login(user)
       .then((response) => {
         console.log(response.data.data.user);
-        console.log(response.data.data.access_token);
-        localStorage.setItem("accessToken", response.data.data.access_token);
-        localStorage.setItem("refreshToken", response.data.data.refresh_token);
-        localStorage.setItem("user1", JSON.stringify(response.data.data.user));
+        console.log(response.data.data);
+        const { access_token, refresh_token, user } = response.data.data;
+        Cookies.set("access_token", access_token, { expires: 1 });
+        Cookies.set("refresh_token", refresh_token, { expires: 7 });
+        localStorage.setItem("user", JSON.stringify(user));
+        notification["success"]({
+          message: "Thông báo",
+          description: "Đăng nhập thành công",
+          duration: 2,
+        });
         Navigate("/");
       })
       .catch((error) => {
@@ -72,6 +79,13 @@ function Login() {
           notification["error"]({
             message: "Thông báo",
             description: "Email hoặc mật khẩu không chính xác",
+            duration: 2,
+          });
+        }
+        if (error.response.data.message === "Tài khoản đã bị khóa") {
+          notification["error"]({
+            message: "Thông báo",
+            description: "Tài khoản này đã bị khóa",
             duration: 2,
           });
         }

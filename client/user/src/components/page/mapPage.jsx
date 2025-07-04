@@ -141,9 +141,9 @@ const MapComponent = () => {
       // Initialize the map only once
       //zoom  20.5
       mapRef.current = L.map("map").setView(userCoords, 20.5);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
-        mapRef.current
-      );
+      L.tileLayer(
+        "https://api.maptiler.com/maps/outdoor-v2/{z}/{x}/{y}.png?key=NTEaCK1Wym5uTXrXu0qE"
+      ).addTo(mapRef.current);
       L.control.zoom({ position: "bottomright" }).addTo(mapRef.current);
 
       // Add routing control with Vietnamese localization
@@ -188,6 +188,22 @@ const MapComponent = () => {
         draggableWaypoints: false,
         fitSelectedRoutes: true,
         showAlternatives: true,
+
+        createMarker: function (i, wp, nWps) {
+          return L.marker(wp.latLng, {
+            draggable: false,
+            icon: L.icon({
+              iconUrl: "https://i.imgur.com/7teZKif.png",
+              iconSize: [35, 41],
+              iconAnchor: [12, 41],
+              iconColor: "blue",
+            }),
+          });
+
+          // return L.marker(wp.latLng, {
+          //   draggable: false,
+          //   icon: L.icon({
+        },
       }).addTo(mapRef.current);
     }
   }, [userCoords, destinationCoords]);
