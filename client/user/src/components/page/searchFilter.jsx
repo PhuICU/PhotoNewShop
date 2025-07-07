@@ -4,9 +4,11 @@ import { Link } from "react-router-dom";
 import useQueryParams from "../../hook/useQueryParam";
 import { useQuery } from "@tanstack/react-query";
 import instance from "../../api/instanApi";
-import { getNearbyProvinces } from "../../api/addressApi";
 import provinceData from "../../dbNearProvince.json";
 import { getProperties } from "../../api/propertiesApi";
+
+import { useTranslation } from "react-i18next";
+import "../../utils/Language/i18n";
 
 function SearchFilter() {
   const savedData = JSON.parse(localStorage.getItem("searchItem"));
@@ -14,22 +16,20 @@ function SearchFilter() {
 
   const [properties, setProperties] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState(savedData.province);
-  const [selectedDistrict, setSelectedDistrict] = useState(savedData.district);
-  const [selectedWard, setSelectedWard] = useState(savedData.ward);
 
-  const [newProvinces, setNewProvinces] = useState("");
-  const [districts, setDistricts] = useState([]);
   const [nearbyProvinces, setNearbyProvinces] = useState([]);
-  const [wards, setWards] = useState([]);
+  const [sortBy, setSortBy] = useState("");
   const [data, setData] = useState({
     province: savedData.province,
     district: savedData.district,
     ward: savedData.ward,
     price: savedData.price,
-    type: savedData.type,
+
     property: savedData.property,
     content: savedData.content,
   });
+
+  const { t } = useTranslation();
 
   const query = useQueryParams();
   console.log(query);
@@ -39,7 +39,9 @@ function SearchFilter() {
     queryFn: async () => await instance.get(`/photo-news`),
   });
 
-  console.log(fetchedData?.data?.data);
+  const handleChangeSort = (e) => {
+    setSortBy(e.target.value);
+  };
   const posts = fetchedData?.data?.data?.items;
 
   function timeAgo(date) {
@@ -101,11 +103,8 @@ function SearchFilter() {
       (property) => property._id === item.property_type_id
     )?.name;
 
-    console.log(Property, item.property_type_id, properties);
     const matchesProperty =
       !savedData.property || Property === savedData.property;
-
-    const matchesType = !savedData.type || item.type === savedData.type;
 
     return (
       matchesPrice &&
@@ -113,17 +112,20 @@ function SearchFilter() {
       matchesDistrict &&
       matchesWard &&
       matchesContent &&
-      matchesProperty &&
-      matchesType
+      matchesProperty
     );
   });
 
-  const typeArray = [
-    { type: "camera", title: "Máy ảnh" },
-    { type: "lens", title: "Ống kính" },
-    { type: "accessories", title: "Phụ kiện" },
-    { type: "camorder", title: "Máy quay" },
-  ];
+  // Sorting logic
+  const sortedPosts = filteredPosts?.sort((a, b) => {
+    if (sortBy === "newest") {
+      return new Date(b.updated_at) - new Date(a.updated_at);
+    }
+    if (sortBy === "oldest") {
+      return new Date(a.updated_at) - new Date(b.updated_at);
+    }
+    return 0;
+  });
 
   const priceArray = [
     {
@@ -149,8 +151,6 @@ function SearchFilter() {
     }
   }, [selectedProvince]);
 
-  console.log(nearbyProvinces);
-
   const handleProvinceChange = (province) => {
     setSelectedProvince(province);
     setData({
@@ -160,6 +160,7 @@ function SearchFilter() {
       ward: "",
     });
   };
+
   localStorage.setItem("searchItem", JSON.stringify(data));
   return (
     <div className="container">
@@ -174,63 +175,25 @@ function SearchFilter() {
             ) : null}
             {savedData.province ? (
               <Typography color="text.primary">
-                Tất cả tin tại {savedData.province}
+                {t("Tất cả tin tại")} {savedData.province}
               </Typography>
             ) : (
               <Typography color="text.primary">
-                Tất cả tin trên toàn quốc
+                {t("Tất cả tin trên toàn quốc")}
               </Typography>
             )}
           </Breadcrumbs>
         </div>
         <div className="mt-4">
-          {savedData.type === "camera" ? (
+          {savedData.property !== "" ? (
             <h4>
-              Máy ảnh{" "}
+              {t(savedData.property)}{" "}
               {savedData.province
-                ? "tại " + savedData.province
-                : "trên toàn quốc"}
+                ? t("tại ") + savedData.province
+                : t("trên toàn quốc")}
               {savedData.price ? (
-                ", giá từ " +
-                priceArray.find((item) => item.price === savedData.price)?.title
-              ) : (
-                <h3></h3>
-              )}
-            </h4>
-          ) : savedData.type === "lens" ? (
-            <h4>
-              Ống kính{" "}
-              {savedData.province
-                ? "tại " + savedData.province
-                : "trên toàn quốc"}
-              {savedData.price ? (
-                ", giá từ " +
-                priceArray.find((item) => item.price === savedData.price)?.title
-              ) : (
-                <h3></h3>
-              )}
-            </h4>
-          ) : savedData.type === "accessory" ? (
-            <h4>
-              Phụ kiện{" "}
-              {savedData.province
-                ? "tại " + savedData.province
-                : "trên toàn quốc"}
-              {savedData.price ? (
-                ", giá từ " +
-                priceArray.find((item) => item.price === savedData.price)?.title
-              ) : (
-                <h3></h3>
-              )}
-            </h4>
-          ) : savedData.type === "camcorder" ? (
-            <h4>
-              Máy quay{" "}
-              {savedData.province
-                ? "tại " + savedData.province
-                : "trên toàn quốc"}
-              {savedData.price ? (
-                ", giá từ " +
+                ", " +
+                t("giá từ ") +
                 priceArray.find((item) => item.price === savedData.price)?.title
               ) : (
                 <h3></h3>
@@ -238,12 +201,13 @@ function SearchFilter() {
             </h4>
           ) : (
             <h4>
-              Tất cả sản phẩm{" "}
+              {t("Tất cả sản phẩm")}{" "}
               {savedData.province
-                ? "tại " + savedData.province
-                : "trên toàn quốc"}
+                ? t("tại ") + savedData.province
+                : t("trên toàn quốc")}
               {savedData.price ? (
-                ", giá từ " +
+                ", " +
+                t("giá từ ") +
                 priceArray.find((item) => item.price === savedData.price)?.title
               ) : (
                 <h3></h3>
@@ -251,13 +215,27 @@ function SearchFilter() {
             </h4>
           )}
         </div>
-        <div className="d-flex justify-content-start">
-          <p>Hiện có {filteredPosts?.length} tin</p>
-        </div>
       </div>
       <div className="row">
         <div className="col-9">
-          {filteredPosts?.map((item) => (
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <p>{t("Hiện có") + " " + sortedPosts?.length + " " + t("tin")}</p>
+            </div>
+            <div>
+              <select
+                name="sort"
+                onChange={handleChangeSort}
+                className="form-select"
+                style={{ width: "200px" }}
+              >
+                <option value="">{t("Sắp xếp theo")}</option>
+                <option value="newest">{t("Mới nhất")}</option>
+                <option value="oldest">{t("Cũ nhất")}</option>
+              </select>
+            </div>
+          </div>
+          {sortedPosts?.map((item) => (
             <div className="card mt-4" key={item.id}>
               <Link
                 to={`/post/${item._id}`}
@@ -300,36 +278,40 @@ function SearchFilter() {
           ))}
         </div>
         <div className="col-3">
-          <h4>Đề xuất các thành phố xung quanh</h4>
-          <ul>
-            {nearbyProvinces.map((province) => (
-              <li
-                key={province}
-                className="nav-link"
-                style={{
-                  listStyle: "none",
-                  padding: "10px",
-                  margin: "0px",
-                }}
-                onClick={() => handleProvinceChange(province)}
-              >
-                <span
-                  style={{
-                    border: "1px solid #ccc",
-                    padding: "5px",
-                    paddingRight: "10px",
-                    paddingLeft: "10px",
-                    marginBottom: "5px",
-                    borderRadius: "20px",
-                    cursor: "pointer",
-                    backgroundColor: "#f5f5f5",
-                  }}
-                >
-                  {province}
-                </span>
-              </li>
-            ))}
-          </ul>
+          {savedData.province ? (
+            <div>
+              <h4>{t("Đề xuất các thành phố xung quanh")}</h4>
+              <ul>
+                {nearbyProvinces.map((province) => (
+                  <li
+                    key={province}
+                    className="nav-link"
+                    style={{
+                      listStyle: "none",
+                      padding: "10px",
+                      margin: "0px",
+                    }}
+                    onClick={() => handleProvinceChange(province)}
+                  >
+                    <span
+                      style={{
+                        border: "1px solid #ccc",
+                        padding: "5px",
+                        paddingRight: "10px",
+                        paddingLeft: "10px",
+                        marginBottom: "5px",
+                        borderRadius: "20px",
+                        cursor: "pointer",
+                        backgroundColor: "#f5f5f5",
+                      }}
+                    >
+                      {province}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

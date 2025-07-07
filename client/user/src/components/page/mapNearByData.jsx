@@ -304,7 +304,6 @@ const MapComponent = () => {
             )
           )}
       </MapContainer>{" "}
-      {console.log(detail)}
       <Drawer title="Thông tin vị trí" onClose={onClose} open={open}>
         <div>
           <div>

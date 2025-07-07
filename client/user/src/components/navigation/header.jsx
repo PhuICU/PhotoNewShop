@@ -17,6 +17,7 @@ import Cookie from "js-cookie";
 import { getProfile } from "../../api/authApi";
 import "../../utils/Language/i18n";
 import { useTranslation } from "react-i18next";
+import { useFetchUser } from "../../hook/useFetchUser";
 function Header() {
   const [activeLink, setActiveLink] = useState("");
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -46,6 +47,7 @@ function Header() {
       setLightMode();
     }
   };
+  const { data: user } = useFetchUser();
 
   const MaterialUISwitch = styled(Switch)(({ theme }) => ({
     width: 62,
@@ -111,13 +113,6 @@ function Header() {
 
   const [dataVip, setDataVip] = useState(false);
 
-  const [dataUser, setDataUser] = useState({
-    full_name: "",
-    email: "",
-    phone: "",
-    avatar: "",
-  });
-
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -141,15 +136,6 @@ function Header() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await getProfile();
-        setDataUser(response.data.data);
-      } catch (error) {
-        console.log("Failed to fetch data: ", error);
-      }
-    };
-
     const fetchVip = async () => {
       try {
         const response = await getCurrentActiveVip();
@@ -161,7 +147,6 @@ function Header() {
       }
     };
     fetchVip();
-    fetchData();
   }, []);
 
   const warning = () => {
@@ -325,7 +310,7 @@ function Header() {
                         </li>
                         <li className="nav-item">
                           <Link to={"/profile"} className="nav-link">
-                            {dataUser.full_name}
+                            {user?.full_name}
                           </Link>
                         </li>
                       </ul>
@@ -346,7 +331,7 @@ function Header() {
                     </div>
                   )}
                   <li>
-                    {localStorage.getItem("user") && dataVip === true ? (
+                    {user && dataVip === true ? (
                       <Link to={"/post/new"} className="nav-link">
                         <Button variant="contained">{t("Đăng tin")}</Button>
                       </Link>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./App.css";
@@ -29,6 +29,8 @@ import Verify from "./components/auth/verify";
 import ResetPassword from "./components/auth/resetPassword";
 
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
+
+import loadingFallback from "./utils/Fallback/loadingFallback";
 
 function App() {
   const setDarkMode = () => {
@@ -69,9 +71,9 @@ function App() {
 
   return (
     <div className="App-header">
-      <QueryClientProvider client={queryClient}>
-        <PayPalScriptProvider options={initialOptions}>
-          <div>
+      <Suspense fallback={<p>Loading...</p>}>
+        <QueryClientProvider client={queryClient}>
+          <PayPalScriptProvider options={initialOptions}>
             <BrowserRouter>
               <Routes>
                 <Route path="/login" element={<Login />} />
@@ -107,9 +109,9 @@ function App() {
                 </Route>
               </Routes>
             </BrowserRouter>
-          </div>
-        </PayPalScriptProvider>
-      </QueryClientProvider>
+          </PayPalScriptProvider>
+        </QueryClientProvider>
+      </Suspense>
     </div>
   );
 }

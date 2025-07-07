@@ -35,7 +35,6 @@ instance.interceptors.response.use(
     //   Cookies.set("access_token", accessToken, { expires: 1 });
     //   Cookies.set("refresh_token", refreshToken, { expires: 7 });
     // }
-    console.log("Response:", response.data);
     return response;
   },
 
