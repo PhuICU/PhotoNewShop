@@ -19,8 +19,7 @@ import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
 
 import { FacebookShareButton, FacebookIcon } from "react-share";
-// import { sendMail } from "../../utils/mail";
-import useAppStore from "../../hook/useAppStore";
+import useAppStore from "../store/useAppStore";
 
 function footer() {
   const { t, i18n } = useTranslation();

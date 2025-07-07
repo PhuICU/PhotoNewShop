@@ -132,25 +132,6 @@ function ClassificationPage() {
     fetchDistricts();
   }, []);
 
-  const typeArr = [
-    {
-      value: "camera",
-      label: "Máy ảnh",
-    },
-    {
-      value: "lens",
-      label: "Ống kính",
-    },
-    {
-      value: "camcorder",
-      label: "Máy quay phim",
-    },
-    {
-      value: "accessory",
-      label: "Phụ kiện",
-    },
-  ];
-
   const formatPrice = (price) => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };

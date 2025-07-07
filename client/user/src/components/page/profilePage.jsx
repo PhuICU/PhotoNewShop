@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import useScrollToTop from "../../hook/useScrollToTop";
+import { useFetchUser } from "../../hook/useFetchUser";
+import useUserStore from "../store/useUserStore";
 
 import UserChat from "../chat/userChat";
 import ChatBox from "../chat/chatBox";
@@ -15,7 +17,6 @@ import { Paper, Button, Typography, Divider } from "@mui/material";
 
 import { Avatar, Modal, Upload, Form, Input, Image, notification } from "antd";
 
-import { CameraOutlined } from "@ant-design/icons";
 import { CrownFilled } from "@ant-design/icons";
 
 import { styled } from "@mui/material/styles";
@@ -27,23 +28,20 @@ import {
   changePassword,
   requestLockAccount,
   getProfile,
-  updateProfile,
 } from "../../api/authApi";
 
 import { getCurrentActiveVip } from "../../api/vipApi";
 import { getPhotoNewsByUserId, updatePhotoNew } from "../../api/photoNewApi";
-import { getProperties } from "../../api/propertiesApi";
+
 import { getDistricts, getProvinces, getWards } from "../../api/addressApi";
 import { getChatsOfUser } from "../../api/chatApi";
+
+import EditUserModal from "../modal/modal.editUser";
 
 import "../../utils/Language/i18n";
 import { useTranslation } from "react-i18next";
 
 function ProfilePage() {
-  const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-
   const [open1, setOpen1] = useState(false);
   const handleOpen1 = () => setOpen1(true);
   const handleClose1 = () => setOpen1(false);
@@ -55,6 +53,8 @@ function ProfilePage() {
     new_password: "",
     new_password_confirm: "",
   });
+  const { data: user, isLoading, isError, error } = useFetchUser();
+  console.log(user);
 
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -63,19 +63,6 @@ function ProfilePage() {
 
   const [dataNewUser, setDataNewUser] = useState([]);
 
-  const [dataUser, setDataUser] = useState({
-    full_name: "",
-    phone: "",
-    tax_code: "",
-    email: "",
-    address: {
-      province: "",
-      district: "",
-      ward: "",
-      details: "",
-    },
-  });
-
   const [chat, setChat] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [idChat, setIdChat] = useState("");
@@ -83,8 +70,6 @@ function ProfilePage() {
   const [selectedProvince, setSelectedProvince] = useState("");
 
   const [selectedDistrict, setSelectedDistrict] = useState("");
-
-  const [payloadUpdate, setPayloadUpdate] = useState({});
 
   const [dataFavorites, setDataFavorites] = useState([]);
 
@@ -100,17 +85,6 @@ function ProfilePage() {
       reader.onerror = (error) => reject(error);
     });
 
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewImage, setPreviewImage] = useState("");
-  const [fileList, setFileList] = useState([]);
-  const handlePreview = async (file) => {
-    if (!file.url && !file.preview) {
-      file.preview = await getBase64(file.originFileObj);
-    }
-    setPreviewImage(file.url || file.preview);
-    setPreviewOpen(true);
-  };
-
   const RequestLock = async () => {
     try {
       const res = await requestLockAccount();
@@ -124,25 +98,6 @@ function ProfilePage() {
       console.log(error);
     }
   };
-
-  const uploadButton = (
-    <button
-      style={{
-        border: 0,
-        background: "none",
-      }}
-      type="button"
-    >
-      <CameraOutlined />
-      <div
-        style={{
-          marginTop: 8,
-        }}
-      >
-        Upload
-      </div>
-    </button>
-  );
 
   const ColorButton1 = styled(Button)(({ theme }) => ({
     color: theme.palette.getContrastText(red[500]),
@@ -172,40 +127,7 @@ function ProfilePage() {
     },
   }));
 
-  const handleProvinceChange = async (provinceId) => {
-    setSelectedProvince(provinceId);
-    const data = await getDistricts(provinceId);
-    setDistricts(data);
-  };
-
-  const handleDistrictChange = async (districtId) => {
-    setSelectedDistrict(districtId);
-    const data = await getWards(districtId);
-    setWards(data);
-  };
-
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await getProfile();
-        setDataUser(res.data.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    if (localStorage.getItem("user1")) {
-      const user = JSON.parse(localStorage.getItem("user1"));
-      setPayloadUpdate((prev) => ({
-        ...prev,
-        full_name: user.full_name,
-        phone: user.phone,
-        tax_code: user.tax_code,
-        email: user.email,
-        address: user.address,
-      }));
-    }
-
     const fetchHistoryVip = async () => {
       try {
         const res = await getCurrentActiveVip();
@@ -248,8 +170,7 @@ function ProfilePage() {
     fetchDistricts();
     fetchWards();
     fetchHistoryVip();
-    fetchUser();
-  }, [setDataUser, setHistoryVip, setDataFavorites]);
+  }, [setHistoryVip, setDataFavorites]);
 
   useEffect(() => {
     const fetchChats = async () => {
@@ -265,14 +186,6 @@ function ProfilePage() {
     fetchChats();
   }, [id]);
 
-  const districtFilter = districts.filter(
-    (district) => district.idProvince === selectedProvince
-  );
-
-  const wardFilter = wards.filter(
-    (ward) => ward.idDistrict === selectedDistrict
-  );
-
   useEffect(() => {
     const fetchNewUser = async () => {
       try {
@@ -285,14 +198,6 @@ function ProfilePage() {
 
     fetchNewUser();
   }, [id]);
-
-  const onChange = (e) => {
-    const { name, value } = e.target;
-    setPayloadUpdate((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
 
   const handlePasswordChange = async (e) => {
     const { name, value } = e.target;
@@ -347,34 +252,6 @@ function ProfilePage() {
       console.log(error);
     }
   };
-  console.log(payloadUpdate);
-  const handleUpdateProfile = () => {
-    try {
-      const res = updateProfile(payloadUpdate);
-
-      console.log(res);
-      notification["success"]({
-        message: "Thông báo",
-        description: "Cập nhật thông tin thành công",
-        duration: 2,
-      });
-
-      handleClose();
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleAddressUserChange = (e) => {
-    const { name, value } = e.target;
-    setPayloadUpdate((prevValue) => ({
-      ...prevValue,
-      address: {
-        ...prevValue.address,
-        [name]: value,
-      },
-    }));
-  };
 
   const updateCurrentChat = (item) => {
     setCurrentChat(item); // or any other state setter
@@ -398,7 +275,7 @@ function ProfilePage() {
                     </li>
                     <li className="nav-item">
                       <h4 className="col">
-                        <span> {dataUser.full_name}</span>
+                        <span> {user?.full_name}</span>
                       </h4>
                       <Typography
                         variant="caption"
@@ -415,51 +292,42 @@ function ProfilePage() {
                   </ul>
                 </div>
               </nav>
-              <div className="align-self-end">
-                <Button
-                  variant="outlined"
-                  className="bg-white text-dark mt-4 fw-bolder"
-                  onClick={handleOpen}
-                >
-                  {t("Cập nhật thông tin")}
-                </Button>
-              </div>
+              <EditUserModal />
             </div>
             <br />
           </div>
-          <div className="mt-4 container-fluid">
+          <div className=" container-fluid">
             <h4>{t("Thông tin cá nhân")}</h4>
             <div>
               <p>
                 <span className="fw-bold">{t("Họ và tên")}: </span>{" "}
-                {dataUser?.full_name}
+                {user?.full_name}
               </p>
               <p>
                 <span className="fw-bold">{t("Số điện thoại")}: </span>{" "}
-                {dataUser?.phone}
+                {user?.phone}
               </p>
               <p>
-                <span className="fw-bold">{t("Email")}: </span>{" "}
-                {dataUser?.email}
+                <span className="fw-bold">{t("Email")}: </span> {user?.email}
               </p>
               <p>
                 <span className="fw-bold">{t("Địa chỉ")}: </span>{" "}
-                {dataUser?.address?.province &&
-                dataUser?.address?.district &&
-                dataUser?.address?.ward
+                {user?.address?.province &&
+                user?.address?.district &&
+                user?.address?.ward
                   ? provinces.find(
                       (province) =>
-                        province.idProvince === dataUser?.address?.province
+                        province.idProvince === user?.address?.province
                     )?.name +
                     ", " +
                     districts1.find(
                       (district) =>
-                        district.idDistrict === dataUser?.address?.district
+                        district.idDistrict === user?.address?.district
                     )?.name +
                     ", " +
-                    dataUser?.address?.ward +
+                    user?.address?.ward +
                     ", " +
-                    dataUser?.address?.details
+                    user?.address?.details
                   : ""}
               </p>
             </div>
@@ -584,173 +452,7 @@ function ProfilePage() {
           <ChatBox chat={currentChat} user={id} id={idChat} />
         </div>
       </div>
-      <Modal
-        open={open}
-        onOk={handleUpdateProfile}
-        onCancel={handleClose}
-        okText="Cập nhật"
-        cancelText="Hủy"
-      >
-        <Form>
-          <div className="">
-            <h6>Thông tin cá nhân</h6>
 
-            <div className="row mt-4">
-              <div className="col">
-                <p>Họ và tên</p>
-                <Form.Item>
-                  <Input
-                    placeholder="Họ và tên"
-                    value={payloadUpdate.full_name}
-                    onChange={onChange}
-                    name="full_name"
-                  />
-                </Form.Item>
-              </div>
-              <div className="col">
-                <p>Mã thuế cá nhân</p>
-                <Form.Item>
-                  <Input
-                    placeholder="Mã thuế cá nhân"
-                    value={payloadUpdate.tax_code}
-                    name="tax_code"
-                    onChange={onChange}
-                  />
-                </Form.Item>
-                <span className="text-muted">MST gồm 10 chữ số</span>
-              </div>
-            </div>
-          </div>
-          <hr />
-          <div>
-            <h6>Thông tin liên hệ</h6>
-            <div className=" mt-4">
-              <div>
-                <p>Số điện thoại</p>
-                <Form.Item>
-                  <Input
-                    placeholder="Số điện thoại"
-                    value={payloadUpdate.phone}
-                    name="phone"
-                    onChange={onChange}
-                  />
-                </Form.Item>
-              </div>{" "}
-              <div>
-                <p>Email</p>
-                <Form.Item>
-                  <Input
-                    placeholder="Email"
-                    value={payloadUpdate.email}
-                    name="email"
-                    onChange={onChange}
-                  />
-                </Form.Item>
-              </div>
-              <div>
-                <p className="fw-bold">Địa chỉ</p>
-                <div className="container">
-                  <div>
-                    <p>Tỉnh/Thành phố</p>
-                    <Form.Item>
-                      <select
-                        className="form-select"
-                        aria-label="Default select example"
-                        name="province"
-                        onChange={(e) => handleProvinceChange(e.target.value)}
-                        onClick={handleAddressUserChange}
-                        value={selectedProvince}
-                      >
-                        <option selected>Chọn tỉnh, thành phố</option>
-                        {provinces && provinces.length > 0
-                          ? provinces.map((item, index) => {
-                              return (
-                                <option
-                                  key={item.idProvince}
-                                  value={item.idProvince}
-                                >
-                                  {item.name}
-                                </option>
-                              );
-                            })
-                          : null}
-                      </select>
-                    </Form.Item>
-                  </div>
-                  <div>
-                    <p>Quận/Huyện</p>
-                    <Form.Item>
-                      <select
-                        className="form-select"
-                        aria-label="Default select example"
-                        value={selectedDistrict}
-                        name="district"
-                        onChange={(e) => handleDistrictChange(e.target.value)}
-                        onClick={handleAddressUserChange}
-                        disabled={!selectedProvince}
-                      >
-                        <option value="" selected>
-                          Chọn quận, huyện
-                        </option>
-                        {districtFilter && districtFilter.length > 0
-                          ? districtFilter.map((item, index) => {
-                              return (
-                                <option
-                                  key={item.idDistrict}
-                                  value={item.idDistrict}
-                                >
-                                  {item.name}
-                                </option>
-                              );
-                            })
-                          : null}
-                      </select>
-                    </Form.Item>
-
-                    <div>
-                      <p>Phường/Xã</p>
-                      <Form.Item>
-                        <select
-                          className="form-select"
-                          aria-label="Default select example"
-                          disabled={!selectedDistrict}
-                          name="ward"
-                          onClick={handleAddressUserChange}
-                        >
-                          <option value="" selected>
-                            Chọn phường, xã
-                          </option>
-                          {wardFilter && wardFilter.length > 0
-                            ? wardFilter.map((item, index) => {
-                                return (
-                                  <option key={item.name} value={item.name}>
-                                    {item.name}
-                                  </option>
-                                );
-                              })
-                            : null}
-                        </select>
-                      </Form.Item>
-                    </div>
-                    <div>
-                      <p>Địa chỉ cụ thể</p>
-                      <Form.Item>
-                        <Input
-                          placeholder="Địa chỉ cụ thể"
-                          value={payloadUpdate?.address?.details}
-                          name="details"
-                          onChange={handleAddressUserChange}
-                        />
-                      </Form.Item>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <hr />
-        </Form>
-      </Modal>
       <Modal
         open={open1}
         onOk={handleClose1}

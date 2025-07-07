@@ -24,8 +24,6 @@ const UserChat = ({ chat, user }) => {
 
   const messages = data1?.data?.data || [];
 
-  console.log(messages);
-
   return (
     <div>
       {recipientUser && (
