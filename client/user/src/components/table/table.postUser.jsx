@@ -7,6 +7,7 @@ import { getProperties } from "../../api/propertiesApi";
 import { getDistricts, getProvinces, getWards } from "../../api/addressApi";
 
 import { updatePhotoNew } from "../../api/photoNewApi";
+import { uploadCloudinaryMultipleImages } from "../../api/imageApi";
 import { Carousel } from "react-bootstrap";
 import {
   IconButton,
@@ -35,7 +36,11 @@ import { useTranslation } from "react-i18next";
 function PostUser({ dataNewUser, user }) {
   const [open2, setOpen2] = useState(false);
   const [open3, setOpen3] = useState(false);
-  const handleOpen2 = () => setOpen2(true);
+  const handleOpen2 = () => {
+    setOpen2(true);
+    setUploadedImages([]);
+    setIsUploading(false);
+  };
   const handleClose2 = () => setOpen2(false);
   const handleOpen3 = () => setOpen3(true);
   const handleClose3 = () => setOpen3(false);
@@ -76,6 +81,9 @@ function PostUser({ dataNewUser, user }) {
     },
     posted_by: user,
   });
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [previewItem, setPreviewItem] = useState(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -96,10 +104,15 @@ function PostUser({ dataNewUser, user }) {
 
     const fetchDistricts = async () => {
       const districtsData = await getDistricts();
-      const data = districtsData?.filter(
-        (district) => district.idProvince === selectedProvince
-      );
-      setDistricts(data);
+      // Check if districtsData is an array before filtering
+      if (Array.isArray(districtsData)) {
+        const data = districtsData.filter(
+          (district) => district.idProvince === selectedProvince
+        );
+        setDistricts(data);
+      } else {
+        setDistricts([]);
+      }
     };
     const fetchDistricts1 = async () => {
       const districtsData = await getDistricts();
@@ -108,12 +121,17 @@ function PostUser({ dataNewUser, user }) {
 
     const fetchWards = async () => {
       const wardsData = await getWards();
-      const data = wardsData?.filter(
-        (ward) =>
-          ward.idDistrict === selectedDistrict &&
-          ward.idProvince === selectedProvince
-      );
-      setWards(data);
+      // Check if wardsData is an array before filtering
+      if (Array.isArray(wardsData)) {
+        const data = wardsData.filter(
+          (ward) =>
+            ward.idDistrict === selectedDistrict &&
+            ward.idProvince === selectedProvince
+        );
+        setWards(data);
+      } else {
+        setWards([]);
+      }
     };
 
     fetchProperties();
@@ -123,13 +141,13 @@ function PostUser({ dataNewUser, user }) {
     fetchDistricts1();
   }, []);
 
-  const districtFilter = districts.filter(
-    (district) => district.idProvince === selectedProvince
-  );
+  const districtFilter = Array.isArray(districts) 
+    ? districts.filter((district) => district.idProvince === selectedProvince)
+    : [];
 
-  const wardFilter = wards.filter(
-    (ward) => ward.idDistrict === selectedDistrict
-  );
+  const wardFilter = Array.isArray(wards)
+    ? wards.filter((ward) => ward.idDistrict === selectedDistrict)
+    : [];
 
   const handleAddressChange = (e) => {
     const { name, value } = e.target;
@@ -161,12 +179,74 @@ function PostUser({ dataNewUser, user }) {
     }));
   };
 
-  const handleImageChange = async ({ fileList }) => {
-    const images = fileList.map((file) => file.originFileObj);
+  const handleProvinceChange = (provinceId) => {
+    setSelectedProvince(provinceId);
+    setSelectedDistrict("");
+    setEditNew((prevValue) => ({
+      ...prevValue,
+      address: {
+        ...prevValue.address,
+        province: provinceId,
+        district: "",
+        ward: "",
+      },
+    }));
+  };
+
+  const handleDistrictChange = (districtId) => {
+    setSelectedDistrict(districtId);
+    setEditNew((prevValue) => ({
+      ...prevValue,
+      address: {
+        ...prevValue.address,
+        district: districtId,
+        ward: "",
+      },
+    }));
+  };
+
+  const handleImageChange = async (event) => {
+    const files = event.target.files;
+    
+    if (files.length === 0) {
+      return;
+    }
+
+    setIsUploading(true);
     const formData = new FormData();
-    images.forEach((image) => {
-      formData.append("file", image);
-    });
+    
+    for (let i = 0; i < files.length; i++) {
+      formData.append("images", files[i]);
+    }
+    console.log(files,formData);
+
+    try {
+      const uploadedImagesData = await uploadCloudinaryMultipleImages(formData);
+      
+      // Check if uploadedImagesData is an array before spreading
+      const newImages = Array.isArray(uploadedImagesData) ? uploadedImagesData : [];
+      
+      if (newImages.length === 0) {
+        alert("Không có hình ảnh nào được tải lên!");
+        return;
+      }
+      
+      // Update the editNew state with new images
+      setEditNew(prev => ({
+        ...prev,
+        images: [...prev.images, ...newImages]
+      }));
+      
+      // Also update the uploadedImages state for UI display
+      setUploadedImages(prev => [...prev, ...newImages]);
+      
+      alert("Hình ảnh đã được tải lên thành công!");
+    } catch (error) {
+      console.error("Error uploading images:", error);
+      alert("Có lỗi khi tải lên hình ảnh!");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleVideoChange = async ({ fileList }) => {
@@ -177,24 +257,16 @@ function PostUser({ dataNewUser, user }) {
     });
   };
 
-  const handleUpdateImage = async ({ fileList }) => {
-    const image = fileList[0].originFileObj;
-    const formData = new FormData();
-    formData.append("file", image);
-    try {
-      const res = await uploadCloudinarySingleImage(formData);
-      setDataUser((prev) => ({
-        ...prev,
-        avatar: res.data.url,
-      }));
-      console.log(res);
-    } catch (error) {
-      console.log(error);
-    }
+  const handleRemoveImage = (indexToRemove) => {
+    setEditNew(prev => ({
+      ...prev,
+      images: prev.images.filter((_, index) => index !== indexToRemove)
+    }));
   };
 
   const handleUpdateNew = async () => {
     try {
+      setIsUpdating(true);
       const {
         _id,
         property_type_id,
@@ -209,6 +281,13 @@ function PostUser({ dataNewUser, user }) {
         contact_info,
         posted_by,
       } = editNew;
+      
+      // Validate that we have at least one image
+      if (!images || images.length === 0) {
+        alert("Vui lòng thêm ít nhất một hình ảnh!");
+        return;
+      }
+
       const res = await updatePhotoNew(_id, {
         property_type_id,
         address,
@@ -222,10 +301,15 @@ function PostUser({ dataNewUser, user }) {
         contact_info,
         posted_by,
       });
+      
       console.log(res);
       alert("Cập nhật tin thành công");
+      handleClose2(); // Close the modal after successful update
     } catch (error) {
       console.log(error);
+      alert("Có lỗi khi cập nhật tin!");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -288,10 +372,12 @@ function PostUser({ dataNewUser, user }) {
                           }}
                         >
                           {
-                            properties.find(
-                              (property) =>
-                                property._id === item.property_type_id
-                            )?.name
+                            Array.isArray(properties) && properties.length > 0
+                              ? properties.find(
+                                  (property) =>
+                                    property._id === item.property_type_id
+                                )?.name
+                              : ""
                           }
                         </td>
                         <td
@@ -313,6 +399,7 @@ function PostUser({ dataNewUser, user }) {
                               handleOpen2();
                               setEditNew(item);
                               setSelectedProvince(item.address.province);
+                              setSelectedDistrict(item.address.district);
                             }}
                           >
                             Chỉnh sửa thông tin
@@ -354,9 +441,10 @@ function PostUser({ dataNewUser, user }) {
         open={open2}
         onOk={handleUpdateNew}
         onCancel={handleClose2}
-        okText="Cập nhật"
+        okText={isUpdating ? "Đang cập nhật..." : "Cập nhật"}
         cancelText="Hủy"
         width={660}
+        confirmLoading={isUpdating}
       >
         <div>
           <h4>Chỉnh sửa tin đăng</h4>
@@ -381,9 +469,11 @@ function PostUser({ dataNewUser, user }) {
                   <option selected value={editNew.address.province}>
                     {editNew.address.province
                       ? editNew.address.province
-                      : provinces.find(
-                          (item) => item.idProvince === editNew.address.province
-                        )?.name}
+                      : (Array.isArray(provinces) && provinces.length > 0
+                          ? provinces.find(
+                              (item) => item.idProvince === editNew.address.province
+                            )?.name
+                          : "")}
                   </option>
                   {provinces && provinces.length > 0
                     ? provinces.map((item, index) => {
@@ -411,9 +501,11 @@ function PostUser({ dataNewUser, user }) {
                   <option value={editNew.address.district} selected>
                     {editNew.address.district
                       ? editNew.address.district
-                      : districts1.find(
-                          (item) => item.idDistrict === editNew.address.district
-                        )?.name}
+                      : (Array.isArray(districts1) && districts1.length > 0
+                          ? districts1.find(
+                              (item) => item.idDistrict === editNew.address.district
+                            )?.name
+                          : "")}
                   </option>
                   {districtFilter && districtFilter.length > 0
                     ? districtFilter.map((item, index) => {
@@ -521,9 +613,11 @@ function PostUser({ dataNewUser, user }) {
                       className="text-danger"
                     >
                       {
-                        properties.find(
-                          (item) => item._id === editNew.property_type_id
-                        )?.name
+                        Array.isArray(properties) && properties.length > 0
+                          ? properties.find(
+                              (item) => item._id === editNew.property_type_id
+                            )?.name
+                          : ""
                       }
                     </option>
                     {properties && properties.length > 0
@@ -668,31 +762,71 @@ function PostUser({ dataNewUser, user }) {
 
             <div className="mt-4 container d-flex justify-content-between row">
               <div className="col">
-                <Button>
+                <Button
+                  variant="contained"
+                  component="label"
+                  disabled={isUploading}
+                  sx={{ mb: 2 }}
+                >
+                  {isUploading ? "Đang tải lên..." : "Chọn hình ảnh"}
                   <input
                     type="file"
-                    name="imagess"
+                    name="images"
                     multiple
+                    accept="image/*"
                     onChange={handleImageChange}
+                    style={{ display: 'none' }}
                   />
-                  <br />
-                  <div>
-                    <CameraOutlined />
-                  </div>
                 </Button>
+                {isUploading && (
+                  <Typography variant="body2" color="text.secondary">
+                    Đang tải lên hình ảnh...
+                  </Typography>
+                )}
               </div>
 
-              <ImageList
-                sx={{ width: 200, height: 250 }}
-                variant="quilted"
-                className="col"
-              >
-                {editNew.images.map((image, index) => (
-                  <ImageListItem key={index}>
-                    <img src={image.url} alt={image} />
-                  </ImageListItem>
-                ))}
-              </ImageList>
+              <div className="col">
+                <Typography variant="h6" gutterBottom>
+                  Hình ảnh hiện tại ({editNew.images.length})
+                </Typography>
+                <ImageList
+                  sx={{ width: 400, height: 300 }}
+                  cols={3}
+                  rowHeight={120}
+                >
+                  {editNew.images.map((image, index) => (
+                    <ImageListItem key={index} sx={{ position: 'relative' }}>
+                      <img 
+                        src={image.url} 
+                        alt={`Image ${index}`}
+                        loading="lazy"
+                        style={{ objectFit: 'cover' }}
+                      />
+                      <IconButton
+                        sx={{
+                          position: 'absolute',
+                          top: 5,
+                          right: 5,
+                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                            color: 'white'
+                          }
+                        }}
+                        size="small"
+                        onClick={() => handleRemoveImage(index)}
+                      >
+                        ×
+                      </IconButton>
+                    </ImageListItem>
+                  ))}
+                </ImageList>
+                {editNew.images.length === 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    Chưa có hình ảnh nào
+                  </Typography>
+                )}
+              </div>
             </div>
             {console.log(editNew)}
             <div>
@@ -701,12 +835,16 @@ function PostUser({ dataNewUser, user }) {
                 <input type="file" name="video" onChange={handleVideoChange} />
               </Button>
               <div>
-                {editNew?.videos?.data?.data?.map((video, index) => (
-                  <video key={index} width="320" height="240" controls>
-                    <source src={video.video_url} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                ))}
+                {Array.isArray(editNew?.videos) && editNew.videos.length > 0 ? (
+                  editNew.videos.map((video, index) => (
+                    <video key={index} width="320" height="240" controls>
+                      <source src={video.video_url} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  ))
+                ) : (
+                  <p>Chưa có video nào</p>
+                )}
               </div>
             </div>
           </div>
@@ -803,17 +941,21 @@ function PostUser({ dataNewUser, user }) {
                     <div>
                       <span>Loại máy: </span>
                       {
-                        properties?.find(
-                          (item) => item._id === previewItem.property_type_id
-                        )?.name
+                        Array.isArray(properties) && properties.length > 0
+                          ? properties.find(
+                              (item) => item._id === previewItem.property_type_id
+                            )?.name
+                          : ""
                       }
                     </div>
                   ) : (
                     <div>
                       <span>Loại máy: </span>
                       {
-                        typeArr.find((item) => item.value === previewItem?.type)
-                          ?.label
+                        Array.isArray(typeArr) && typeArr.length > 0
+                          ? typeArr.find((item) => item.value === previewItem?.type)
+                              ?.label
+                          : ""
                       }
                     </div>
                   )}

@@ -20,8 +20,18 @@ export const uploadCloudinaryMultipleImages = async (data) =>
         "Content-Type": "multipart/form-data",
       },
     })
-    .then((res) => res.data.data)
-    .catch((err) => err.response.data);
+    .then((res) => {
+      console.log("API Response:", res);
+      // Handle different response structures
+      if (res && res.data) {
+        return res.data.data || res.data || [];
+      }
+      return [];
+    })
+    .catch((err) => {
+      console.error("Upload API Error:", err);
+      return err.response?.data || [];
+    });
 
 export const destroyImages = async (data) =>
   api

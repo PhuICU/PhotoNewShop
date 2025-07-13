@@ -144,20 +144,30 @@ function ProfilePage() {
 
     const fetchDistricts = async () => {
       const districtsData = await getDistricts();
-      const data = districtsData?.filter(
-        (district) => district.idProvince === selectedProvince
-      );
-      setDistricts(data);
+      // Check if districtsData is an array before filtering
+      if (Array.isArray(districtsData)) {
+        const data = districtsData.filter(
+          (district) => district.idProvince === selectedProvince
+        );
+        setDistricts(data);
+      } else {
+        setDistricts([]);
+      }
     };
 
     const fetchWards = async () => {
       const wardsData = await getWards();
-      const data = wardsData?.filter(
-        (ward) =>
-          ward.idDistrict === selectedDistrict &&
-          ward.idProvince === selectedProvince
-      );
-      setWards(data);
+      // Check if wardsData is an array before filtering
+      if (Array.isArray(wardsData)) {
+        const data = wardsData.filter(
+          (ward) =>
+            ward.idDistrict === selectedDistrict &&
+            ward.idProvince === selectedProvince
+        );
+        setWards(data);
+      } else {
+        setWards([]);
+      }
     };
 
     const fetchDistricts1 = async () => {
@@ -315,15 +325,19 @@ function ProfilePage() {
                 {user?.address?.province &&
                 user?.address?.district &&
                 user?.address?.ward
-                  ? provinces.find(
-                      (province) =>
-                        province.idProvince === user?.address?.province
-                    )?.name +
+                  ? (Array.isArray(provinces) && provinces.length > 0
+                      ? provinces.find(
+                          (province) =>
+                            province.idProvince === user?.address?.province
+                        )?.name
+                      : "") +
                     ", " +
-                    districts1.find(
-                      (district) =>
-                        district.idDistrict === user?.address?.district
-                    )?.name +
+                    (Array.isArray(districts1) && districts1.length > 0
+                      ? districts1.find(
+                          (district) =>
+                            district.idDistrict === user?.address?.district
+                        )?.name
+                      : "") +
                     ", " +
                     user?.address?.ward +
                     ", " +

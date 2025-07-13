@@ -63,13 +63,13 @@ function editUserModal() {
     const data = await getWards(districtId);
     setWards(data);
   };
-  const districtFilter = districts.filter(
-    (district) => district.idProvince === selectedProvince
-  );
+  const districtFilter = Array.isArray(districts) 
+    ? districts.filter((district) => district.idProvince === selectedProvince)
+    : [];
 
-  const wardFilter = wards.filter(
-    (ward) => ward.idDistrict === selectedDistrict
-  );
+  const wardFilter = Array.isArray(wards)
+    ? wards.filter((ward) => ward.idDistrict === selectedDistrict)
+    : [];
 
   const handleUpdateProfile = () => {
     try {
@@ -132,20 +132,30 @@ function editUserModal() {
 
     const fetchDistricts = async () => {
       const districtsData = await getDistricts();
-      const data = districtsData?.filter(
-        (district) => district.idProvince === selectedProvince
-      );
-      setDistricts(data);
+      // Check if districtsData is an array before filtering
+      if (Array.isArray(districtsData)) {
+        const data = districtsData.filter(
+          (district) => district.idProvince === selectedProvince
+        );
+        setDistricts(data);
+      } else {
+        setDistricts([]);
+      }
     };
 
     const fetchWards = async () => {
       const wardsData = await getWards();
-      const data = wardsData?.filter(
-        (ward) =>
-          ward.idDistrict === selectedDistrict &&
-          ward.idProvince === selectedProvince
-      );
-      setWards(data);
+      // Check if wardsData is an array before filtering
+      if (Array.isArray(wardsData)) {
+        const data = wardsData.filter(
+          (ward) =>
+            ward.idDistrict === selectedDistrict &&
+            ward.idProvince === selectedProvince
+        );
+        setWards(data);
+      } else {
+        setWards([]);
+      }
     };
 
     const fetchDistricts1 = async () => {
@@ -158,6 +168,44 @@ function editUserModal() {
     fetchDistricts();
     fetchWards();
   }, []);
+
+  // Update districts when selectedProvince changes
+  useEffect(() => {
+    if (selectedProvince) {
+      const fetchDistrictsForProvince = async () => {
+        const districtsData = await getDistricts();
+        if (Array.isArray(districtsData)) {
+          const data = districtsData.filter(
+            (district) => district.idProvince === selectedProvince
+          );
+          setDistricts(data);
+        } else {
+          setDistricts([]);
+        }
+      };
+      fetchDistrictsForProvince();
+    }
+  }, [selectedProvince]);
+
+  // Update wards when selectedDistrict changes
+  useEffect(() => {
+    if (selectedDistrict) {
+      const fetchWardsForDistrict = async () => {
+        const wardsData = await getWards();
+        if (Array.isArray(wardsData)) {
+          const data = wardsData.filter(
+            (ward) =>
+              ward.idDistrict === selectedDistrict &&
+              ward.idProvince === selectedProvince
+          );
+          setWards(data);
+        } else {
+          setWards([]);
+        }
+      };
+      fetchWardsForDistrict();
+    }
+  }, [selectedDistrict, selectedProvince]);
 
   const onChange = (e) => {
     const { name, value } = e.target;

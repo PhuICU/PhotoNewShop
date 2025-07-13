@@ -129,15 +129,19 @@ function CardProfile(props) {
               {dataUser?.address?.province &&
               dataUser?.address?.district &&
               dataUser?.address?.ward
-                ? provinces.find(
-                    (province) =>
-                      province.idProvince === dataUser?.address?.province
-                  )?.name +
+                ? (Array.isArray(provinces) && provinces.length > 0
+                    ? provinces.find(
+                        (province) =>
+                          province.idProvince === dataUser?.address?.province
+                      )?.name
+                    : "") +
                   ", " +
-                  districts1.find(
-                    (district) =>
-                      district.idDistrict === dataUser?.address?.district
-                  )?.name +
+                  (Array.isArray(districts1) && districts1.length > 0
+                    ? districts1.find(
+                        (district) =>
+                          district.idDistrict === dataUser?.address?.district
+                      )?.name
+                    : "") +
                   ", " +
                   dataUser?.address?.ward +
                   ", " +

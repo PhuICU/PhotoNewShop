@@ -298,13 +298,17 @@ function DashbroadNew() {
   addnew.price.value = Number(addnew.price.value);
 
   const addressResult =
-    provinces.find(
-      (province) => province.idProvince === addnew.address.province
-    )?.name +
+    (Array.isArray(provinces) && provinces.length > 0
+      ? provinces.find(
+          (province) => province.idProvince === addnew.address.province
+        )?.name
+      : "") +
     ", " +
-    districts.find(
-      (district) => district.idDistrict === addnew.address.district
-    )?.name +
+    (Array.isArray(districts) && districts.length > 0
+      ? districts.find(
+          (district) => district.idDistrict === addnew.address.district
+        )?.name
+      : "") +
     ", " +
     addnew.address.ward +
     ", " +

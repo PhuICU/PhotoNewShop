@@ -42,12 +42,6 @@ function FilterPost() {
     property: "",
     content: "",
   });
-  const formatAddress = {
-    province: searchItem.province,
-    district: searchItem.district,
-    ward: searchItem.ward,
-    street: searchItem.street,
-  };
   const handleSearchChange = (e) => {
     const { name, value } = e.target;
     setSearchItem({ ...searchItem, [name]: value });
@@ -102,20 +96,30 @@ function FilterPost() {
 
     const fetchDistricts = async () => {
       const districtsData = await getDistricts();
-      const data = districtsData?.filter(
-        (district) => district.idProvince === selectedProvince
-      );
-      setDistricts(data);
+      // Check if districtsData is an array before filtering
+      if (Array.isArray(districtsData)) {
+        const data = districtsData.filter(
+          (district) => district.idProvince === selectedProvince
+        );
+        setDistricts(data);
+      } else {
+        setDistricts([]);
+      }
     };
 
     const fetchWards = async () => {
       const wardsData = await getWards();
-      const data = wardsData?.filter(
-        (ward) =>
-          ward.district_id === selectedDistrict &&
-          ward.province_id === selectedProvince
-      );
-      setWards(data);
+      // Check if wardsData is an array before filtering
+      if (Array.isArray(wardsData)) {
+        const data = wardsData.filter(
+          (ward) =>
+            ward.district_id === selectedDistrict &&
+            ward.province_id === selectedProvince
+        );
+        setWards(data);
+      } else {
+        setWards([]);
+      }
     };
 
     fetchProperties();
@@ -124,13 +128,32 @@ function FilterPost() {
     fetchWards();
   }, []);
 
-  const districtFilter = districts.filter(
-    (district) => district.idProvince === selectedProvince
-  );
+  // Update searchItem when selectedProvince or selectedDistrict changes
+  useEffect(() => {
+    if (selectedProvince || selectedDistrict) {
+      const selectedProvinceData = Array.isArray(provinces) && provinces.length > 0 
+        ? provinces.find((item) => item.idProvince === selectedProvince)?.name 
+        : "";
+      
+      const selectedDistrictData = Array.isArray(districts) && districts.length > 0 
+        ? districts.find((item) => item.idDistrict === selectedDistrict)?.name 
+        : "";
 
-  const wardFilter = wards.filter(
-    (ward) => ward.idDistrict === selectedDistrict
-  );
+      setSearchItem(prev => ({
+        ...prev,
+        province: selectedProvinceData,
+        district: selectedDistrictData,
+      }));
+    }
+  }, [selectedProvince, selectedDistrict, provinces, districts]);
+
+  const districtFilter = Array.isArray(districts) 
+    ? districts.filter((district) => district.idProvince === selectedProvince)
+    : [];
+
+  const wardFilter = Array.isArray(wards)
+    ? wards.filter((ward) => ward.idDistrict === selectedDistrict)
+    : [];
 
   const ColorButton1 = styled(Button)(({ theme }) => ({
     color: theme.palette.getContrastText(red[500]),
@@ -152,15 +175,13 @@ function FilterPost() {
 
   const navigate = useNavigate();
 
-  searchItem.province = provinces.find(
-    (item) => item.idProvince === selectedProvince
-  )?.name;
-  searchItem.district = districts.find(
-    (item) => item.idDistrict === selectedDistrict
-  )?.name;
-  formatAddress.province = searchItem.province;
-
-  formatAddress.district = searchItem.district;
+  // Create formatAddress object from current searchItem
+  const formatAddress = {
+    province: searchItem.province,
+    district: searchItem.district,
+    ward: searchItem.ward,
+    street: searchItem.street,
+  };
   return (
     <div
       className=" d-flex justify-content-center mt-2"
@@ -221,7 +242,7 @@ function FilterPost() {
                           </option>
                         ) : (
                           <Typography variant="caption">
-                            {t("searchItem.property")}
+                            {t(searchItem.property)}
                           </Typography>
                         )}
 
@@ -262,12 +283,12 @@ function FilterPost() {
                   width: "280px",
                 }}
               >
-                {searchItem.province ? (
-                  <Typography variant="caption">
-                    {formatAddress.province},{formatAddress.district},
-                    {formatAddress.ward},{formatAddress.street}
-                  </Typography>
-                ) : (
+                                        {searchItem.province ? (
+                          <Typography variant="caption">
+                            {formatAddress.province},{formatAddress.district},
+                            {formatAddress.ward},{formatAddress.street}
+                          </Typography>
+                        ) : (
                   <Typography variant="caption">
                     {t("Trên toàn quốc")}
                   </Typography>

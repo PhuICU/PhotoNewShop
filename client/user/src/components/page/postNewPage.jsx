@@ -214,42 +214,52 @@ function PostNewPage() {
     const fetchDistricts = async () => {
       const districtsData = await getDistricts();
       console.log("Data: ", districtsData.idProvince, selectedProvince);
-      const data = districtsData?.filter(
-        (district) => district.idProvince === selectedProvince
-      );
-      setDistricts(data);
+      // Check if districtsData is an array before filtering
+      if (Array.isArray(districtsData)) {
+        const data = districtsData.filter(
+          (district) => district.idProvince === selectedProvince
+        );
+        setDistricts(data);
+      } else {
+        setDistricts([]);
+      }
     };
 
     fetchDistricts();
 
     const fetchWards = async () => {
       const wardsData = await getWards();
-      const data = wardsData?.filter(
-        (ward) =>
-          ward.district_id === selectedDistrict &&
-          ward.province_id === selectedProvince
-      );
-      setWards(data);
+      // Check if wardsData is an array before filtering
+      if (Array.isArray(wardsData)) {
+        const data = wardsData.filter(
+          (ward) =>
+            ward.district_id === selectedDistrict &&
+            ward.province_id === selectedProvince
+        );
+        setWards(data);
+      } else {
+        setWards([]);
+      }
     };
     fetchWards();
 
     fetchProperties();
   }, []);
 
-  const districtFilter = districts.filter(
-    (district) => district.idProvince === selectedProvince
-  );
+  const districtFilter = Array.isArray(districts) 
+    ? districts.filter((district) => district.idProvince === selectedProvince)
+    : [];
 
-  const wardFilter = wards.filter(
-    (ward) => ward.idDistrict === selectedDistrict
-  );
+  const wardFilter = Array.isArray(wards)
+    ? wards.filter((ward) => ward.idDistrict === selectedDistrict)
+    : [];
 
-  addNew.address.province = provinces?.find(
-    (province) => province.idProvince === selectedProvince
-  )?.name;
-  addNew.address.district = districts?.find(
-    (district) => district.idDistrict === selectedDistrict
-  )?.name;
+  addNew.address.province = Array.isArray(provinces) && provinces.length > 0
+    ? provinces.find((province) => province.idProvince === selectedProvince)?.name
+    : "";
+  addNew.address.district = Array.isArray(districts) && districts.length > 0
+    ? districts.find((district) => district.idDistrict === selectedDistrict)?.name
+    : "";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
